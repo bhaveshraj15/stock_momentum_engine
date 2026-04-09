@@ -1,0 +1,48 @@
+meta:
+  name: "DAX 40"
+  exchange: "XETRA"
+  currency: "EUR"
+  suffix: ".DE"           # yfinance uses .DE for Xetra-listed stocks
+  description: >
+    DAX 40 — Germany's 40 largest publicly listed companies.
+    Tickers use the .DE suffix for yfinance compatibility.
+
+tickers:
+  - ADS.DE       # Adidas
+  - AIR.DE       # Airbus
+  - ALV.DE       # Allianz
+  - BAYN.DE      # Bayer
+  - BEI.DE       # Beiersdorf
+  - BMW.DE       # BMW
+  - BNR.DE       # Brenntag
+  - CON.DE       # Continental
+  - 1COV.DE      # Covestro
+  - DB1.DE       # Deutsche Börse
+  - DBK.DE       # Deutsche Bank
+  - DPW.DE       # Deutsche Post
+  - DTE.DE       # Deutsche Telekom
+  - EOAN.DE      # E.ON
+  - FRE.DE       # Fresenius
+  - FME.DE       # Fresenius Medical Care
+  - HNR1.DE      # Hannover Re
+  - HEI.DE       # HeidelbergCement (now Heidelberg Materials)
+  - HEN3.DE      # Henkel
+  - IFX.DE       # Infineon
+  - LIN.DE       # Linde
+  - MBG.DE       # Mercedes-Benz
+  - MRK.DE       # Merck KGaA
+  - MTX.DE       # MTU Aero Engines
+  - MUV2.DE      # Munich Re
+  - PAH3.DE      # Porsche
+  - PUMA.DE      # Puma
+  - QIA.DE       # Qiagen
+  - RWE.DE       # RWE
+  - SAP.DE       # SAP
+  - SRT3.DE      # Sartorius
+  - SIE.DE       # Siemens
+  - ENR.DE       # Siemens Energy
+  - SHL.DE       # Siemens Healthineers
+  - SY1.DE       # Symrise
+  - VOW3.DE      # Volkswagen
+  - VNA.DE       # Vonovia
+  - ZAL.DE       # Zalando

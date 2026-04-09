@@ -1,0 +1,16 @@
+# ============================================================
+# momentum-engine — Python dependencies
+# ============================================================
+# Install:  pip install -r requirements.txt
+# ============================================================
+ 
+# --- Data fetching ---
+yfinance>=0.2.50        # OHLCV downloads
+ 
+# --- Core data stack ---
+pandas>=2.0.0
+numpy>=1.26.0
+pyarrow>=14.0.0         # parquet cache read/write
+ 
+# --- Config ---
+PyYAML>=6.0             # YAML universe config loader
