@@ -47,6 +47,30 @@ from filters.base_filter import BaseFilter
 logger = logging.getLogger(__name__)
 
 
+def default_gates() -> List[BaseFilter]:
+    """
+    Returns the full v1 gate stack — mirrors the notebook filter criteria exactly:
+        1. TrendFilter      — Close >= EMA100 >= EMA200
+        2. High52wFilter    — within 20% of 52-week high
+        3. MinReturnFilter  — 1-year return >= 6.5%
+        4. UpDaysFilter     — >50% up days in last 6 months
+
+    Usage:
+        scorer = Scorer(gates=default_gates())
+    """
+    from filters.trend_filter      import TrendFilter
+    from filters.high52w_filter    import High52wFilter
+    from filters.min_return_filter import MinReturnFilter
+    from filters.up_days_filter    import UpDaysFilter
+
+    return [
+        TrendFilter(),
+        High52wFilter(),
+        MinReturnFilter(),
+        UpDaysFilter(),
+    ]
+
+
 class Scorer:
     """
     Runs gate filters then scoring filters and produces a ranked DataFrame.
