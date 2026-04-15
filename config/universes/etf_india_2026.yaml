@@ -1,0 +1,394 @@
+meta:
+  name: "Indian ETFs — NSE Complete Universe (Apr 2026)"
+  exchange: "NSE"
+  currency: "INR"
+  suffix: ".NS"
+  source: "NSE ETF Market Watch — MW-ETF-16-Apr-2026.csv"
+  total_tickers: 322
+  description: >
+    Complete NSE-listed ETF universe as of 16-Apr-2026 (322 tickers).
+    Sourced directly from NSE market watch data.
+    Covers equity (broad, sectoral, factor), commodity (gold, silver),
+    fixed income, liquid, and international ETFs.
+    Recommended usage: run the correlation filter first to reduce
+    to a diversified sub-universe before applying momentum scoring.
+
+tickers:
+
+  # --- Nifty 50 (26) ---
+  - AONENIFTY.NS   # Nifty 50 Index
+  - AXISNIFTY.NS   # Nifty 50
+  - BSLNIFTY.NS   # Nifty 50
+  - ENIFTY.NS   # Nifty 50 TRI
+  - EQUAL50.NS   # Nifty50 Equal Weight
+  - EQUAL50ADD.NS   # NIFTY 50 Equal Weight Index
+  - GROWWNIFTY.NS   # Nifty 50 Index - TRI
+  - HDFCNIFTY.NS   # Nifty 50
+  - IDFNIFTYET.NS   # Nifty 50
+  - IVZINNIFTY.NS   # Nifty 50
+  - LICNETFN50.NS   # Nifty 50
+  - MOM50.NS   # Nifty 50
+  - MON50EQUAL.NS   # Nifty 50 Equal Weight Total Return Index
+  - MONIFTY500.NS   # Motilal Oswal Nifty 500 ETF
+  - MULTICAP.NS   # Nifty500 Multicap 50:25:25 Index
+  - NETF.NS   # Tata Nifty 50 Exchange Traded Fund
+  - NIFTY1.NS   # Nifty 50
+  - NIFTYADD.NS   # Nifty 50 Index
+  - NIFTYBEES.NS   # Nifty 50
+  - NIFTYBETA.NS   # Nifty 50
+  - NIFTYBETF.NS   # Bajaj Finserv Nifty 50 ETF
+  - NIFTYETF.NS   # Nifty 50
+  - NIFTYIETF.NS   # Nifty 50
+  - QNIFTY.NS   # Nifty 50
+  - SBINEQWETF.NS   # Nifty50 Equal Weight
+  - SETFNIF50.NS   # Nifty 50
+
+  # --- Sensex (11) ---
+  - AXSENSEX.NS   # AXIS S&P BSE SENSEX ETF
+  - BSLSENETFG.NS   # BSE SENSEX Index
+  - ESENSEX.NS   # BSE Sensex TRI
+  - HDFCSENSEX.NS   # SENSEX
+  - LICNETFSEN.NS   # SENSEX
+  - NEXT30ADD.NS   # BSE SENSEX Next 30 Index
+  - SENSEXADD.NS   # DSP S&P BSE Sensex ETF
+  - SENSEXBETA.NS   # SENSEX
+  - SENSEXETF.NS   # Mirae Asset S&P BSE Sensex ETF
+  - SENSEXIETF.NS   # SENSEX
+  - SNXT30BEES.NS   # BSE Sensex Next 30 Index
+
+  # --- Nifty 100 / Next 50 (18) ---
+  - ABSLNN50ET.NS   # Nifty Next 50
+  - HDFCNEXT50.NS   # HDFC NIFTY NEXT 50 ETF
+  - HDFCNIF100.NS   # HDFC NIFTY 100 ETF
+  - JUNIORBEES.NS   # Nippon India ETF Nifty Next 50 Junior BeES
+  - LICNFNHGP.NS   # Nifty 100
+  - MONEXT50.NS   # Nifty Next 50 Total Return Index
+  - MONIFTY100.NS   # Nifty 100 Total Return Index
+  - NEXT50.NS   # Nifty Next 50
+  - NEXT50ADD.NS   # Nifty Next 50 TRI
+  - NEXT50BETA.NS   # Nifty Next 50
+  - NEXT50ETF.NS   # Nifty Next 50 Index
+  - NEXT50IETF.NS   # Nifty Next 50
+  - NIF100BEES.NS   # Nifty 100 TRI
+  - NIF100IETF.NS   # Nifty 100
+  - NIFTY100EW.NS   # Nifty 100 Equal Weight Index
+  - SETFNN50.NS   # Nifty Next 50
+  - SNXT50BETA.NS   # BSE Sensex Next 50
+  - TOP100CASE.NS   # Zerodha Nifty 100 ETF
+
+  # --- Broad Market (4) ---
+  - BSE500IETF.NS   # S&P BSE 500 index
+  - EQUAL200.NS   # BSE 200 Equal Weight
+  - GROWWN200.NS   # Nifty 200 Index- Total Return Index
+  - HDFCBSE500.NS   # HDFC S&P BSE 500 ETF
+
+  # --- Midcap (16) ---
+  - ELM250.NS   # Nifty LargeMidcap 250 TRI
+  - GROWWMC150.NS   # Nifty Midcap 150 Index - TRI
+  - HDFCMID150.NS   # HDFC NIFTY Midcap 150 ETF
+  - LICNMID100.NS   # LIC MF Nifty Midcap 100 ETF
+  - MID150.NS   # Nifty Midcap 150 Index
+  - MID150BEES.NS   # Nifty Midcap 150 TRI
+  - MID150CASE.NS   # Zerodha Nifty Midcap 150 ETF
+  - MIDCAP.NS   # Nifty Midcap 50 Index
+  - MIDCAPADD.NS   # Nifty Midcap 150 Index
+  - MIDCAPBETA.NS   # UTI Nifty Midcap 150 Exchange Traded Fund (ETF)
+  - MIDCAPETF.NS   # Mirae Asset Mutual Fund - Mirae Asset Nifty Midcap 150 ETF
+  - MIDCAPIETF.NS   # Nifty Midcap 150
+  - MIDSELIETF.NS   # S&P BSE Midcap Select Index
+  - MOLOWVOL.NS   # Nifty Midcap 100 TRI
+  - MOM100.NS   # Nifty Midcap 100
+  - SBINMID150.NS   # Nifty Midcap 150 Index
+
+  # --- Smallcap (6) ---
+  - GROWWSC250.NS   # Nifty Smallcap 250 Index - TRI
+  - HDFCSML250.NS   # HDFC NIFTY Smallcap 250 ETF
+  - MOSMALL250.NS   # Motilal Oswal Nifty Smallcap 250 ETF
+  - SMALL250.NS   # Nifty Smallcap 250
+  - SMALLADD.NS   # Nifty Smallcap 250 Index
+  - SML100CASE.NS   # Nifty Smallcap 100 Index
+
+  # --- Banking (29) ---
+  - ABSL10BANK.NS   # BSE Top 10 Banks Index
+  - ABSLBANETF.NS   # Nifty Bank
+  - AXISBNKETF.NS   # Nifty Bank
+  - BANK10ADD.NS   # BSE Top 10 Banks Index (TRI)
+  - BANKADD.NS   # DSP Nifty Bank ETF
+  - BANKBEES.NS   # Nifty Bank
+  - BANKBETA.NS   # Nifty Bank
+  - BANKBETF.NS   # Bajaj Finserv Nifty Bank ETF
+  - BANKETF.NS   # Mirae Asset Nifty Bank ETF
+  - BANKIETF.NS   # Nifty Bank
+  - BANKNIFTY1.NS   # Nifty Bank
+  - BANKPSU.NS   # Nifty PSU Bank Total Return Index
+  - BBNPNBETF.NS   # Baroda BNP Paribas NIFTY Bank ETF
+  - EBANKNIFTY.NS   # Edelweiss Nifty Bank ETF
+  - GROWWPSUBK.NS   # Nifty PSU Bank Index - TRI
+  - HDFCNIFBAN.NS   # Nifty Bank
+  - HDFCPSUBK.NS   # HDFC NIFTY PSU BANK ETF
+  - HDFCPVTBAN.NS   # HDFC NIFTY Private Bank ETF
+  - MOBANK10.NS   # BSE Top 10 Banks Total Return Index
+  - NPBET.NS   # Nifty Private Bank Index
+  - PSUBANK.NS   # Nifty PSU Bank
+  - PSUBANKADD.NS   # DSP Nifty PSU Bank ETF
+  - PSUBNKBEES.NS   # Nifty PSU Bank
+  - PSUBNKIETF.NS   # ICICI Prudential Nifty PSU Bank ETF
+  - PVTBANIETF.NS   # Nifty Private Bank Index
+  - PVTBANKADD.NS   # DSP Nifty Private Bank ETF
+  - SBIBPB.NS   # BSE PSU Bank Index TRI
+  - SBIETFPB.NS   # Nifty Private Bank Index
+  - SETFNIFBK.NS   # Nifty Bank
+
+  # --- IT / Technology (10) ---
+  - AXISTECETF.NS   # NIFTY IT Index
+  - HDFCNIFIT.NS   # HDFC NIFTY IT ETF
+  - IT.NS   # NIFTY IT Index
+  - ITADD.NS   # DSP Nifty IT ETF
+  - ITBEES.NS   # Nifty IT TRI
+  - ITBETA.NS   # UTI Nifty IT ETF
+  - ITETF.NS   # Mirae Asset Nifty IT ETF
+  - ITIETF.NS   # Nifty IT Index
+  - SBIETFIT.NS   # Nifty IT Index
+  - TECH.NS   # Nifty IT TRI Index
+
+  # --- Healthcare / Pharma (8) ---
+  - AXISHCETF.NS   # Nifty Healthcare Index
+  - GROWWHOSPI.NS   # BSE Hospitals Index
+  - HEALTHADD.NS   # DSP Nifty Healthcare ETF
+  - HEALTHCARE.NS   # Nifty 500 Healthcare Index
+  - HEALTHIETF.NS   # Nifty Healthcare Index
+  - HEALTHY.NS   # Nifty Healthcare TRI
+  - MOHEALTH.NS   # Motilal Oswal S&P BSE Healthcare ETF
+  - PHARMABEES.NS   # Nifty Pharma TRI
+
+  # --- Consumption / FMCG (7) ---
+  - AXISCETF.NS   # NIFTY India Consumption Index
+  - CONS.NS   # Kotak Nifty India Consumption ETF
+  - CONSUMBEES.NS   # Nifty India Consumption TRI
+  - CONSUMER.NS   # Nifty India New AgeConsumption
+  - CONSUMIETF.NS   # Nifty India Consumption Index
+  - FMCGIETF.NS   # Nifty FMCG Index
+  - SBIETFCON.NS   # Nifty India Consumption Index
+
+  # --- Infrastructure (4) ---
+  - INFRA.NS   # Nifty India Infrastructure & Logistics
+  - INFRABEES.NS   # Nifty Infra
+  - INFRAIETF.NS   # ICICI Prudential Nifty Infrastructure ETF
+  - MOINFRA.NS   # BSE India Infrastructure Total Return Index
+
+  # --- CPSE / PSU (5) ---
+  - ABSLPSE.NS   # Aditya Birla Sun Life Nifty PSE ETF
+  - CPSEETF.NS   # CPSE ETF
+  - GROWWPSE.NS   # Nifty PSE Index - TRI
+  - GROWWRAIL.NS   # Nifty India Railways PSU Index
+  - MOPSE.NS   # Nifty PSE Total Return Index
+
+  # --- Auto (5) ---
+  - AUTOBEES.NS   # Nifty Auto TRI
+  - AUTOIETF.NS   # Nifty Auto Index
+  - EVIETF.NS   # Nifty EV & New Age Automotive ETF
+  - EVINDIA.NS   # Nifty EV and New Age Automotive Total Return Index
+  - GROWWEV.NS   # Nifty EV and New Age Automotive Index
+
+  # --- Metals / Commodities (7) ---
+  - COMMOIETF.NS   # ICICI Prudential Nifty Commodities ETF
+  - GROWWGOLD.NS   # Commodity
+  - GROWWMETAL.NS   # Nifty Metal Index
+  - HSBCGOLD.NS   # Commodity
+  - METAL.NS   # Nifty Metal Total Return Index
+  - METALIETF.NS   # Nifty Metal Index
+  - TWCGOLDETF.NS   # Commodity
+
+  # --- Energy (4) ---
+  - ENERGY.NS   # Nifty Energy
+  - GROWWPOWER.NS   # BSE Power Index - TRI
+  - MOENERGY.NS   # Nifty Energy Index
+  - OILIETF.NS   # Nifty Oil & Gas Index
+
+  # --- Realty (1) ---
+  - MOREALTY.NS   # Motilal Oswal Nifty Realty ETF
+
+  # --- Defence (3) ---
+  - DEFENCE.NS   # BSE India Defence
+  - GROWWDEFNC.NS   # Nifty India Defence Index- Total Return Index
+  - MODEFENCE.NS   # Nifty India Defence Total Return Index
+
+  # --- Factor – Momentum (13) ---
+  - AONETMMQ50.NS   # Nifty Total Market Momentum Quality 50 TRI
+  - EMULTIMQ.NS   # Nifty500 Multicap Momentum Quality 50 Total Return Index
+  - GROWWMOM50.NS   # Nifty 500 Momentum 50 Index- Total Return Index
+  - HDFCMOMENT.NS   # HDFC NIFTY200 Momentum 30 ETF
+  - MIDSMALL.NS   # Mirae Asset Nifty MidSmallcap400 Momentum Quality 100 ETF
+  - MOM30IETF.NS   # ICICI Prudential Nifty 200 Momentum 30 ETF
+  - MOMENTUM.NS   # Aditya Birla Sun Life Nifty 200 Momentum 30 ETF
+  - MOMENTUM30.NS   # Nifty 200 Momentum 30 Index
+  - MOMENTUM50.NS   # Nifty 500 Momentum 50 Total Return Index
+  - MOMIDMTM.NS   # Nifty Midcap 150 Momentum 50 Total Return Index
+  - MOMOMENTUM.NS   # Nifty 200 Momentum 30 Total Return Index
+  - SBIMIDMOM.NS   # Nifty Midcap 150 Momentum 50 Index
+  - SMALLCAP.NS   # Mirae Asset Nifty Smallcap 250 Momentum Quality 100 ETF
+
+  # --- Factor – Quality (8) ---
+  - FLEXIADD.NS   # Nifty500 Flexicap Quality 30 TRI
+  - HDFCQUAL.NS   # HDFC NIFTY100 Quality 30 ETF
+  - MIDQ50ADD.NS   # Nifty Midcap 150 Quality 50 Index
+  - MOQUALITY.NS   # Motilal Oswal S&P BSE Quality ETF
+  - NIFTYQLITY.NS   # Aditya Birla Sun Life Nifty 200 Quality 30 ETF
+  - QUAL30IETF.NS   # ICICI Prudential Nifty 200 Quality 30 ETF
+  - QUALITY30.NS   # Nifty200 Quality 30 Index
+  - SBIETFQLTY.NS   # Nifty 200 Quality 30 Index
+
+  # --- Factor – Value / Low Vol / Alpha (17) ---
+  - ALPHA.NS   # NIFTY Alpha 50 Index
+  - ALPHAETF.NS   # Mirae Asset Nifty 200 Alpha 30 ETF
+  - ALPL30IETF.NS   # Nifty Alpha Low-Volatility 30 Index
+  - AXISVALUE.NS   # Nifty500 Value 50 TRI
+  - GROWWLOVOL.NS   # Nifty 500 Low Volatility 50 Index   TRI
+  - HDFCLOWVOL.NS   # HDFC NIFTY100 Low Volatility 30 ETF
+  - HDFCVALUE.NS   # HDFC NIFTY50 Value 20 ETF
+  - LOWVOL.NS   # Mirae Asset Nifty 100 Low Volatility 30 ETF
+  - LOWVOL1.NS   # Kotak Nifty 100 Low Vol 30 ETF
+  - LOWVOLIETF.NS   # Nifty 100 Low Volatility 30 Index
+  - MOALPHA50.NS   # Nifty Alpha 50 Total Return Index
+  - MOVALUE.NS   # Motilal Oswal S&P BSE Enhanced Value ETF
+  - NV20.NS   # Nifty50 Value 20
+  - NV20BEES.NS   # Nifty50 Value20 TRI
+  - NV20IETF.NS   # Nifty50 Value 20
+  - VAL30IETF.NS   # Nifty200 Value 30 Index
+  - VALUE.NS   # Nifty 500 Value 50
+
+  # --- Factor – Dividend (2) ---
+  - DIVIDEND.NS   # BSE 500 Dividend Leaders
+  - DIVOPPBEES.NS   # Nifty Dividend Opportunities 50 TRI
+
+  # --- ESG / Shariah (2) ---
+  - ESG.NS   # NIFTY100 ESG SECTOR LEADERS
+  - SHARIABEES.NS   # Shariah
+
+  # --- Other / Thematic (29) ---
+  - AONETOTAL.NS   # Nifty Total Market Index
+  - BFSI.NS   # Nifty Financial Services Index
+  - CHEMICAL.NS   # Nifty Chemicals Index (TRI)
+  - ECAPINSURE.NS   # BSE Capital Markets & Insurance Total Return Index
+  - FINIETF.NS   # ICICI Prudential Nifty Financial Services Ex-Bank ETF
+  - GROWWCAPM.NS   # Nifty Capital Markets Index
+  - GROWWCHEM.NS   # Nifty Chemicals Index - TRI
+  - GROWWNET.NS   # Index
+  - GROWWNXT50.NS   # Index
+  - GROWWRLTY.NS   # Index
+  - HDFCGROWTH.NS   # HDFC NIFTY Growth Sectors 15 ETF
+  - ICICIB22.NS   # S&P BSE BHARAT 22 index
+  - INTERNET.NS   # Equity Index
+  - MAFANG.NS   # NYSE FANG+ Total Return Index
+  - MAKEINDIA.NS   # Nifty India Manufacturing Total Return Index
+  - MANUFGBEES.NS   # Nifty India Manufacturing TRI
+  - MNC.NS   # Kotak Nifty MNC ETF
+  - MOCAPITAL.NS   # Nifty Capital Market Total Return Index
+  - MOIPO.NS   # BSE Select IPO Total Return Index
+  - MOMGF.NS   # Nifty India Manufacturing Total Return Index
+  - MOMNC.NS   # Nifty MNC ETF Total Return Index
+  - MOSERVICE.NS   # Nifty Services Sector Total Return Index
+  - MOTOUR.NS   # Nifty India Tourism Total Return Index
+  - NIFTYCASE.NS   # Nifty Index 50 Index
+  - SELECTIPO.NS   # BSE Select IPO Index
+  - TNIDETF.NS   # Nifty India Digital Index
+  - TOP10ADD.NS   # Nifty Top 10 Equal Weight Index
+  - TOP15IETF.NS   # Nifty Top 15 Equal Weight Index
+  - TOP20.NS   # Nifty Top 20 Equal Weight
+
+  # --- Gold (23) ---
+  - AONEGOLD.NS   # Domestic price of Gold
+  - AXISGOLD.NS   # Gold
+  - BBNPPGOLD.NS   # Baroda BNP Paribas Gold ETF
+  - BSLGOLDETF.NS   # Gold
+  - CHOICEGOLD.NS   # Gold
+  - EGOLD.NS   # Edelweiss Gold ETF
+  - GOLD1.NS   # Gold
+  - GOLD360.NS   # Commodity-Gold
+  - GOLDADD.NS   # DSP Gold ETF
+  - GOLDBEES.NS   # Gold
+  - GOLDBETA.NS   # Gold
+  - GOLDBND.NS   # Commodity - Gold
+  - GOLDCASE.NS   # Zerodha Gold ETF
+  - GOLDETF.NS   # Mirae Asset Gold ETF
+  - GOLDIETF.NS   # Gold
+  - HDFCGOLD.NS   # Gold
+  - IVZINGOLD.NS   # Gold
+  - LICMFGOLD.NS   # Gold
+  - MOGOLD.NS   # Domestic Price of Physical Gold
+  - QGOLDHALF.NS   # Gold
+  - SETFGOLD.NS   # Gold
+  - TATAGOLD.NS   # Tata Gold Exchange Traded Fund
+  - UNIONGOLD.NS   # Commodity Gold
+
+  # --- Silver (18) ---
+  - AONESILVER.NS   # Domestic price of Silver
+  - AXISILVER.NS   # Axis Silver ETF
+  - ESILVER.NS   # Edelweiss Silver ETF
+  - GROWWSLVR.NS   # Commodity-Silver
+  - HDFCSILVER.NS   # HDFC Silver ETF
+  - MOSILVER.NS   # Domestic Price of Physical Silver
+  - SBISILVER.NS   # SBI SILVER ETF
+  - SILVER.NS   # Physical price of Silver
+  - SILVER1.NS   # Kotak Silver ETF
+  - SILVER360.NS   # Commodity-Silver
+  - SILVERADD.NS   # DSP Silver ETF
+  - SILVERAG.NS   # Mirae Asset Silver ETF
+  - SILVERBEES.NS   # Domestic price of Silver- based on LBMA Silver daily spot fixing price
+  - SILVERBETA.NS   # UTI Silver Exchange Traded Fund (UTI Silver ETF)
+  - SILVERBND.NS   # Commodity - Silver
+  - SILVERCASE.NS   # Commodity-Silver
+  - SILVERIETF.NS   # Domestic Price of Silver
+  - TATSILV.NS   # Tata Silver Exchange Traded Fund
+
+  # --- Fixed Income / Gilt (20) ---
+  - ABGSEC.NS   # Aditya Birla Sun Life CRISIL Broad Based Gilt ETF
+  - AXISBPSETF.NS   # Nifty AAA Bond Plus SDL Apr 2026 50:50 Index
+  - BBETF0432.NS   # Nifty BHARAT Bond Index - April 2032
+  - EBBETF0430.NS   # Nifty BHARAT Bond
+  - EBBETF0431.NS   # Nifty BHARAT Bond
+  - EBBETF0433.NS   # BHARAT Bond ETF-April 2033
+  - GILT10BETA.NS   # UTI Nifty 10 yr Benchmark G-Sec ETF
+  - GILT5BETA.NS   # UTI Nifty 5 yr Benchmark G-Sec ETF
+  - GILT5YBEES.NS   # Nifty 5 yr Benchmark G-Sec Index
+  - GSEC10ABSL.NS   # CRISIL 10 Year Gilt ETF
+  - GSEC10IETF.NS   # ICICI Prudential Nifty 10 yr Benchmark G-Sec ETF
+  - GSEC10YEAR.NS   # Mirae Asset Nifty 8-13 yr G-Sec ETF
+  - GSEC5IETF.NS   # Nifty 5 yr Benchmark G-Sec Index
+  - LICNETFGSC.NS   # GSEC10 NSE Index
+  - LIQUIDBEES.NS   # Government Securities
+  - LTGILTBEES.NS   # NIFTY 8-13 yr G-Sec Index
+  - LTGILTCASE.NS   # Nifty 8-13 Yr G-Sec Index
+  - MOGSEC.NS   # Nifty 5 yr Benchmark G-Sec Index
+  - SDL26BEES.NS   # Nifty SDL Apr 2026 Top 20 Equal Weight Index
+  - SETF10GILT.NS   # Nifty 10 yr Benchmark G-Sec Index
+
+  # --- Liquid / Money Market (18) ---
+  - ABSLLIQUID.NS   # Aditya Birla Sun Life CRISIL Overnight Fund AI ETF
+  - AONELIQUID.NS   # Nifty 1D Rate Index
+  - CASHIETF.NS   # BSE Liquid Rate Index
+  - ELIQUID.NS   # Nifty 1D Rate Index (Debt Index)
+  - GROWWLIQID.NS   # Nifty 1D Rate Index
+  - HDFCLIQUID.NS   # HDFC Nifty 1D Rate Liquid ETF
+  - LIQGRWBEES.NS   # Liquid
+  - LIQUID.NS   # Mirae Asset Nifty 1D Rate Liquid ETF
+  - LIQUID1.NS   # Kotak Nifty 1D Rate Liquid ETF
+  - LIQUIDADD.NS   # DSP S&P BSE Liquid Rate ETF
+  - LIQUIDBETF.NS   # Bajaj Finserv Nifty 1D Rate Liquid ETF
+  - LIQUIDCASE.NS   # Zerodha Nifty 1D Rate Liquid ETF
+  - LIQUIDETF.NS   # Nifty1D rate index
+  - LIQUIDIETF.NS   # S&P BSE Liquid Rate Index
+  - LIQUIDPLUS.NS   # Nifty 1D Rate Index
+  - LIQUIDSBI.NS   # SBI NIFTY 1D Rate ETF
+  - LIQUIDSHRI.NS   # SHRIRAM NIFTY 1D RATE LIQUID ETF
+  - SBILIQETF.NS   # Nifty 1D Rate Index
+
+  # --- International (8) ---
+  - ABSLMSCIN.NS   # MSCI India Index
+  - HNGSNGBEES.NS   # Hang Seng Index
+  - MAHKTECH.NS   # Hang Seng TECH Total Return Index
+  - MASPTOP50.NS   # S&P 500 Top 50 Total Return Index
+  - MON100.NS   # Nasdaq100
+  - MONQ50.NS   # Nasdaq Q-50 Total Return Index
+  - MSCIADD.NS   # MSCI India Index
+  - MSCIINDIA.NS   # MSCI India Index
