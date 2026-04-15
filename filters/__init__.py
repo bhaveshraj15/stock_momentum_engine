@@ -11,6 +11,8 @@ from filters.trend_filter      import TrendFilter
 from filters.high52w_filter    import High52wFilter
 from filters.min_return_filter import MinReturnFilter
 from filters.up_days_filter    import UpDaysFilter
+from filters.momentum_filter    import MomentumFilter
+from filters.correlation_filter import CorrelationFilter
 
 __all__ = [
     "BaseFilter",
@@ -18,4 +20,6 @@ __all__ = [
     "High52wFilter",
     "MinReturnFilter",
     "UpDaysFilter",
+    "MomentumFilter",
+    "CorrelationFilter",
 ]

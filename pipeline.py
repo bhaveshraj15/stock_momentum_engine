@@ -129,6 +129,17 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Skip gate filters, score all tickers",
     )
     p.add_argument(
+        "--corr-filter",
+        action="store_true",
+        help="Apply correlation pre-filter before gates (recommended for large universes)",
+    )
+    p.add_argument(
+        "--ccp",
+        type=float,
+        default=1.75e-4,
+        help="Correlation cap parameter for --corr-filter (default: 1.75e-4)",
+    )
+    p.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable debug logging",
@@ -173,7 +184,24 @@ def run(args: argparse.Namespace) -> None:
         len(prices), n_tickers,
     )
 
-    # ── 3. Build scorer ──────────────────────────────────────────────
+    # ── 3. Correlation pre-filter (optional) ────────────────────────
+    if args.corr_filter:
+        from filters.correlation_filter import CorrelationFilter
+        cf = CorrelationFilter(params={"ccp": args.ccp})
+        logger.info(
+            "Applying correlation pre-filter (ccp=%.2e)...", args.ccp
+        )
+        kept_tickers = cf.apply_to_universe(prices)
+        logger.info(
+            "Correlation filter: %d → %d tickers",
+            n_tickers, len(kept_tickers),
+        )
+        # Subset prices to kept tickers
+        prices = prices.loc[
+            :, prices.columns.get_level_values(1).isin(kept_tickers)
+        ]
+
+    # ── 4. Build scorer ──────────────────────────────────────────────
     from filters.momentum_filter import MomentumFilter
     from scoring.scorer import Scorer, default_gates
 
@@ -190,11 +218,11 @@ def run(args: argparse.Namespace) -> None:
         scorers=[momentum],
     )
 
-    # ── 4. Run scorer ────────────────────────────────────────────────
+    # ── 5. Run scorer ────────────────────────────────────────────────
     logger.info("Running scorer...")
     result = scorer.run(prices)
 
-    # ── 5. Print summary ─────────────────────────────────────────────
+    # ── 6. Print summary ─────────────────────────────────────────────
     passing = result[result["rank"].notna()]
     logger.info(
         "%d/%d tickers passed all gates", len(passing), len(result)
@@ -215,7 +243,7 @@ def run(args: argparse.Namespace) -> None:
     else:
         logger.warning("No tickers passed the gate filters.")
 
-    # ── 6. Export ────────────────────────────────────────────────────
+    # ── 7. Export ────────────────────────────────────────────────────
     from output.exporter import Exporter
     exporter = Exporter(output_dir=args.output_dir)
     universe_name = loader.get_name().lower().replace(" ", "_")
