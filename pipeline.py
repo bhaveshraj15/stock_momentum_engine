@@ -124,6 +124,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Print top N tickers to console after scoring",
     )
     p.add_argument(
+        "--no-gates",
+        action="store_true",
+        help="Skip all gate filters, score the entire universe",
+    )
+    p.add_argument(
         "--no-volume-gate",
         action="store_true",
         help="Skip the VolumeFilter gate (avg volume check)",
