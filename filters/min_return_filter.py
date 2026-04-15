@@ -79,7 +79,7 @@ class MinReturnFilter(BaseFilter):
         for ticker in close.columns:
             series = close[ticker].dropna()
 
-            if len(series) < window_days:
+            if len(series) <= window_days:
                 # Not enough history — use whatever we have
                 logger.debug(
                     "%s: %s — only %d rows available, need %d. Using full history.",
