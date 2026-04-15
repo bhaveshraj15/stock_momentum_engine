@@ -14,7 +14,7 @@ from filters.up_days_filter    import UpDaysFilter
 from filters.momentum_filter    import MomentumFilter
 from filters.correlation_filter import CorrelationFilter
 from filters.diversification_filter  import DiversificationFilter
-
+from filters.volume_filter       import VolumeFilter
 __all__ = [
     "BaseFilter",
     "TrendFilter",
@@ -24,4 +24,5 @@ __all__ = [
     "MomentumFilter",
     "CorrelationFilter",
     "DiversificationFilter",
+    "VolumeFilter",
 ]

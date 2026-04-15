@@ -124,9 +124,31 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Print top N tickers to console after scoring",
     )
     p.add_argument(
-        "--no-gates",
+        "--no-volume-gate",
         action="store_true",
-        help="Skip gate filters, score all tickers",
+        help="Skip the VolumeFilter gate (avg volume check)",
+    )
+    p.add_argument(
+        "--no-volume-confirm",
+        action="store_true",
+        help="Skip the VolumeFilter confirm (vol_21d > vol_63d > vol_252d check)",
+    )
+    p.add_argument(
+        "--min-volume",
+        type=float,
+        default=1e5,
+        help="Minimum average daily volume for gate mode (default: 100000)",
+    )
+    p.add_argument(
+        "--volume-score",
+        action="store_true",
+        help="Add VolumeFilter score mode as a scorer (amplifies/penalises momentum)",
+    )
+    p.add_argument(
+        "--volume-weight",
+        type=float,
+        default=1.0,
+        help="Weight for VolumeFilter scorer relative to MomentumFilter (default: 1.0)",
     )
     p.add_argument(
         "--corr-filter",
@@ -219,8 +241,10 @@ def run(args: argparse.Namespace) -> None:
         ]
 
     # ── 4. Build scorer ──────────────────────────────────────────────
+    # ── 4. Build scorer ──────────────────────────────────────────────
     from filters.momentum_filter import MomentumFilter
-    from scoring.scorer import Scorer, default_gates
+    from filters.volume_filter   import VolumeFilter
+    from scoring.scorer          import Scorer, default_gates
 
     momentum = MomentumFilter(params={
         "lookbacks": args.lookbacks,
@@ -228,12 +252,38 @@ def run(args: argparse.Namespace) -> None:
         "mode":      args.mode,
     })
 
-    gates = [] if args.no_gates else default_gates()
+    # Build gate list — start from default, selectively remove volume gates
+    if args.no_gates:
+        gates = []
+    else:
+        all_gates = default_gates()
+        gates = []
+        for gate in all_gates:
+            if args.no_volume_gate and gate.name == "VolumeFilter":
+                continue
+            if args.no_volume_confirm and gate.name == "VolumeConfirm":
+                continue
+            # Override min_volume if user specified
+            if gate.name == "VolumeFilter" and not args.no_volume_gate:
+                gate.params["min_avg_volume"] = args.min_volume
+            gates.append(gate)
 
-    scorer = Scorer(
-        gates=gates,
-        scorers=[momentum],
-    )
+    # Build scorer list
+    scorers = [momentum]
+    weights = [1.0]
+
+    if args.volume_score:
+        vol_scorer = VolumeFilter(
+            params={"mode": "score"},
+            name="VolumeScore",
+        )
+        scorers.append(vol_scorer)
+        weights.append(args.volume_weight)
+        logger.info(
+            "VolumeFilter scorer added (weight=%.1f)", args.volume_weight
+        )
+
+    scorer = Scorer(gates=gates, scorers=scorers, weights=weights)
 
     # ── 5. Run scorer ────────────────────────────────────────────────
     logger.info("Running scorer...")

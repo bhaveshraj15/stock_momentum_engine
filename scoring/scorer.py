@@ -49,11 +49,13 @@ logger = logging.getLogger(__name__)
 
 def default_gates() -> List[BaseFilter]:
     """
-    Returns the full v1 gate stack — mirrors the notebook filter criteria exactly:
-        1. TrendFilter      — Close >= EMA100 >= EMA200
-        2. High52wFilter    — within 20% of 52-week high
-        3. MinReturnFilter  — 1-year return >= 6.5%
-        4. UpDaysFilter     — >50% up days in last 6 months
+    Returns the full v1 gate stack:
+        1. TrendFilter          — Close >= EMA100 >= EMA200
+        2. High52wFilter        — within 20% of 52-week high
+        3. MinReturnFilter      — 1-year return >= 6.5%
+        4. UpDaysFilter         — >50% up days in last 6 months
+        5. VolumeFilter gate    — avg volume >= 100k (removes illiquid)
+        6. VolumeFilter confirm — vol_21d > vol_63d > vol_252d (removes fakes)
 
     Usage:
         scorer = Scorer(gates=default_gates())
@@ -62,12 +64,15 @@ def default_gates() -> List[BaseFilter]:
     from filters.high52w_filter    import High52wFilter
     from filters.min_return_filter import MinReturnFilter
     from filters.up_days_filter    import UpDaysFilter
+    from filters.volume_filter     import VolumeFilter
 
     return [
         TrendFilter(),
         High52wFilter(),
         MinReturnFilter(),
         UpDaysFilter(),
+        VolumeFilter(params={"mode": "gate"}),
+        VolumeFilter(params={"mode": "confirm"}, name="VolumeConfirm"),
     ]
 
 
