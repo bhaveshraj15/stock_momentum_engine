@@ -13,6 +13,7 @@ from filters.min_return_filter import MinReturnFilter
 from filters.up_days_filter    import UpDaysFilter
 from filters.momentum_filter    import MomentumFilter
 from filters.correlation_filter import CorrelationFilter
+from filters.diversification_filter  import DiversificationFilter
 
 __all__ = [
     "BaseFilter",
@@ -22,4 +23,5 @@ __all__ = [
     "UpDaysFilter",
     "MomentumFilter",
     "CorrelationFilter",
+    "DiversificationFilter",
 ]

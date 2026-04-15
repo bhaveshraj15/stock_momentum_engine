@@ -140,6 +140,23 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Correlation cap parameter for --corr-filter (default: 1.75e-4)",
     )
     p.add_argument(
+        "--diversify",
+        action="store_true",
+        help="Apply diversification filter after scoring (removes correlated duplicates)",
+    )
+    p.add_argument(
+        "--div-threshold",
+        type=float,
+        default=0.85,
+        help="Max correlation allowed between final picks (default: 0.85)",
+    )
+    p.add_argument(
+        "--max-picks",
+        type=int,
+        default=None,
+        help="Hard cap on final number of tickers after diversification",
+    )
+    p.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable debug logging",
@@ -243,7 +260,33 @@ def run(args: argparse.Namespace) -> None:
     else:
         logger.warning("No tickers passed the gate filters.")
 
-    # ── 7. Export ────────────────────────────────────────────────────
+    # ── 7. Diversification filter (optional) ────────────────────────
+    if args.diversify and len(passing) > 0:
+        from filters.diversification_filter import DiversificationFilter
+        div = DiversificationFilter(params={
+            "threshold":   args.div_threshold,
+            "max_tickers": args.max_picks,
+        })
+        logger.info(
+            "Applying diversification filter (threshold=%.2f)...",
+            args.div_threshold,
+        )
+        final_tickers = div.apply(result, prices)
+        report        = div.get_report(result, prices)
+
+        logger.info(
+            "Diversification: %d → %d final picks",
+            len(passing), len(final_tickers),
+        )
+
+        print(f"\n{'─'*40}")
+        print(f"  Diversification report")
+        print(f"{'─'*40}")
+        print(report[["rank", "final_score", "status", "removed_by", "max_corr"]]
+              .to_string())
+        print(f"{'─'*40}\n")
+
+    # ── 8. Export ────────────────────────────────────────────────────
     from output.exporter import Exporter
     exporter = Exporter(output_dir=args.output_dir)
     universe_name = loader.get_name().lower().replace(" ", "_")
