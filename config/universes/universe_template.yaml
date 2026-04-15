@@ -1,0 +1,145 @@
+# ==============================================================================
+# UNIVERSE CONFIG TEMPLATE — momentum-engine
+# ==============================================================================
+#
+# HOW TO USE THIS TEMPLATE
+# ────────────────────────
+# 1. Copy this file and rename it: e.g. "my_universe.yaml"
+# 2. Fill in the `meta` section with your universe's details
+# 3. Add your tickers in the `tickers` section
+#    OR point to a CSV file using `csv_source` (see bottom of this file)
+# 4. Place the file in: config/universes/
+# 5. Run: python pipeline.py --universe config/universes/my_universe.yaml
+#
+# TICKER FORMAT
+# ─────────────
+# Use the exact symbol that yfinance recognises:
+#   NSE stocks / ETFs   →  add .NS suffix    e.g. RELIANCE.NS
+#   BSE stocks          →  add .BO suffix    e.g. RELIANCE.BO
+#   US stocks           →  no suffix needed  e.g. AAPL
+#   German stocks       →  add .DE suffix    e.g. SAP.DE
+#   UK stocks           →  add .L suffix     e.g. HSBA.L
+#
+# You can verify any ticker at: https://finance.yahoo.com
+# ==============================================================================
+
+
+# ── REQUIRED: Meta section ────────────────────────────────────────────────────
+meta:
+
+  # Human-readable name shown in reports and output filenames
+  name: "My Custom Universe"
+
+  # Stock exchange where the tickers are listed
+  # Examples: "NSE", "BSE", "NYSE", "NASDAQ", "XETRA", "LSE"
+  exchange: "NSE"
+
+  # Currency used by this exchange
+  # Examples: "INR", "USD", "EUR", "GBP"
+  currency: "INR"
+
+  # Suffix automatically appended to tickers that don't already have one
+  # Set to "" (empty string) for US tickers which need no suffix
+  # Common values: ".NS" (NSE), ".BO" (BSE), ".DE" (Germany), ".L" (UK), ""
+  suffix: ".NS"
+
+  # Optional: a short description of this universe
+  description: >
+    Write a brief description of what this universe contains.
+    For example: "Nifty 50 large-cap stocks for monthly momentum screening."
+
+
+# ── OPTION A: Inline ticker list ─────────────────────────────────────────────
+# List each ticker on its own line, starting with "- "
+# Comments (# ...) after a ticker are optional but help with organisation
+# The suffix from meta.suffix is auto-appended if not already present
+# So "RELIANCE" and "RELIANCE.NS" are treated identically when suffix is ".NS"
+
+tickers:
+
+  # --- Group 1 name (optional, just for readability) ---
+  - TICKER1.NS      # description of what this is
+  - TICKER2.NS      # description of what this is
+  - TICKER3.NS
+
+  # --- Group 2 name ---
+  - TICKER4.NS
+  - TICKER5.NS
+
+
+# ── OPTION B: Load from CSV file ─────────────────────────────────────────────
+# Use this instead of the inline `tickers` list above (not both)
+# Useful when you have a large list already in a spreadsheet or NSE download
+#
+# csv_source:
+#   path: "data/input/my_list.csv"   # path to CSV, relative to repo root
+#   ticker_column: "Symbol"          # name of the column that holds ticker symbols
+#   suffix: ".NS"                    # optional: overrides meta.suffix for CSV tickers
+
+
+# ==============================================================================
+# REAL EXAMPLES
+# ==============================================================================
+
+# ── Example 1: Small custom NSE equity universe ───────────────────────────────
+#
+# meta:
+#   name: "My Top Picks"
+#   exchange: "NSE"
+#   currency: "INR"
+#   suffix: ".NS"
+#
+# tickers:
+#   - RELIANCE.NS
+#   - TCS.NS
+#   - INFY.NS
+#   - HDFCBANK.NS
+#   - ICICIBANK.NS
+
+
+# ── Example 2: US stocks (no suffix needed) ───────────────────────────────────
+#
+# meta:
+#   name: "US Tech Giants"
+#   exchange: "NASDAQ"
+#   currency: "USD"
+#   suffix: ""
+#
+# tickers:
+#   - AAPL
+#   - MSFT
+#   - NVDA
+#   - GOOGL
+#   - META
+
+
+# ── Example 3: Load Nifty 500 from NSE CSV ────────────────────────────────────
+#
+# meta:
+#   name: "Nifty 500"
+#   exchange: "NSE"
+#   currency: "INR"
+#   suffix: ".NS"
+#
+# csv_source:
+#   path: "data/input/ind_nifty500list.csv"
+#   ticker_column: "Symbol"
+#   suffix: ".NS"
+
+
+# ── Example 4: DAX German stocks ─────────────────────────────────────────────
+#
+# meta:
+#   name: "DAX 40"
+#   exchange: "XETRA"
+#   currency: "EUR"
+#   suffix: ".DE"
+#
+# tickers:
+#   - SAP.DE
+#   - SIE.DE
+#   - ALV.DE
+#   - BMW.DE
+#   - BAYN.DE
+
+# ==============================================================================
