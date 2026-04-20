@@ -80,15 +80,16 @@ class MinReturnFilter(BaseFilter):
             series = close[ticker].dropna()
 
             if len(series) <= window_days:
-                # Not enough history — use whatever we have
+                # Need window_days+1 rows to land iloc[0] on the exact boundary
                 logger.debug(
-                    "%s: %s — only %d rows available, need %d. Using full history.",
-                    self.name, ticker, len(series), window_days,
+                    "%s: %s — only %d rows available, need %d. Skipping.",
+                    self.name, ticker, len(series), window_days + 1,
                 )
-                start_price = series.iloc[0]
-            else:
-                # Exact boundary capture — same as notebook's (period*-21)-1 logic
-                start_price = series.iloc[-(window_days + 1)]
+                results[ticker] = float("nan")
+                continue
+
+            # Exact boundary capture — same as notebook's (period*-21)-1 logic
+            start_price = series.iloc[-(window_days + 1)]
 
             end_price = series.iloc[-1]
             ret = (end_price / start_price) - 1
