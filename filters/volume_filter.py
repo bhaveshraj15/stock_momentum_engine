@@ -242,11 +242,10 @@ class VolumeFilter(BaseFilter):
 
             if len(series) < 252:
                 logger.debug(
-                    "%s: %s — only %d rows, need 252 for score. "
-                    "Returning neutral score 1.0.",
+                    "%s: %s — only %d rows, need 252 for score. Skipping.",
                     self.name, ticker, len(series),
                 )
-                results[ticker] = 1.0   # neutral — don't penalise for lack of data
+                results[ticker] = float("nan")
                 continue
 
             vol_21d  = series.iloc[-21:].mean()

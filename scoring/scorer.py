@@ -181,8 +181,10 @@ class Scorer:
                 score_matrix[scorer_filter.name] = self._minmax(raw)
 
             weights = self._resolve_weights()
+            weighted     = score_matrix.mul(weights, axis=1)
+            weight_sums  = score_matrix.notna().mul(weights, axis=1).sum(axis=1)
             result.loc[passed_tickers, "final_score"] = (
-                score_matrix.mul(weights, axis=1).sum(axis=1) / sum(weights)
+                weighted.sum(axis=1) / weight_sums   # 0/0 → NaN if all scorers missed
             )
 
         # ---- Step 3: Rank --------------------------------------------
