@@ -145,15 +145,15 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Minimum average daily volume for gate mode (default: 100000)",
     )
     p.add_argument(
-        "--volume-score",
+        "--no-volume-score",
         action="store_true",
-        help="Add VolumeFilter score mode as a scorer (amplifies/penalises momentum)",
+        help="Disable VolumeFilter scorer (runs by default at weight 0.3)",
     )
     p.add_argument(
         "--volume-weight",
         type=float,
-        default=1.0,
-        help="Weight for VolumeFilter scorer relative to MomentumFilter (default: 1.0)",
+        default=0.3,
+        help="Weight for VolumeFilter scorer relative to MomentumFilter (default: 0.3)",
     )
     p.add_argument(
         "--corr-filter",
@@ -280,7 +280,7 @@ def run(args: argparse.Namespace) -> None:
     scorers = [momentum]
     weights = [1.0]
 
-    if args.volume_score:
+    if not args.no_volume_score:
         vol_scorer = VolumeFilter(
             params={"mode": "score"},
             name="VolumeScore",
@@ -288,7 +288,7 @@ def run(args: argparse.Namespace) -> None:
         scorers.append(vol_scorer)
         weights.append(args.volume_weight)
         logger.info(
-            "VolumeFilter scorer added (weight=%.1f)", args.volume_weight
+            "VolumeFilter scorer active (weight=%.1f)", args.volume_weight
         )
 
     scorer = Scorer(gates=gates, scorers=scorers, weights=weights)
