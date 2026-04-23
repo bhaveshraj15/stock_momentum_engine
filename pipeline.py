@@ -382,6 +382,17 @@ def main() -> None:
         logger.error("Universe config not found: %s", args.universe)
         sys.exit(1)
 
+    if args.weights is not None:
+        if len(args.weights) != len(args.lookbacks):
+            logger.error(
+                "--weights length (%d) must match --lookbacks length (%d).",
+                len(args.weights), len(args.lookbacks),
+            )
+            sys.exit(1)
+        if sum(args.weights) <= 0:
+            logger.error("--weights must sum to > 0, got %s.", args.weights)
+            sys.exit(1)
+
     try:
         run(args)
     except KeyboardInterrupt:

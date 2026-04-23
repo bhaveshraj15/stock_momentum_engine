@@ -108,6 +108,10 @@ class Scorer:
                 f"Scorer: weights length ({len(self.weights)}) must match "
                 f"scorers length ({len(self.scorers)})."
             )
+        if self.weights is not None and sum(self.weights) <= 0:
+            raise ValueError(
+                f"Scorer: weights must sum to > 0, got {self.weights}."
+            )
 
         logger.info(
             "Scorer initialised — %d gate(s): %s | %d scorer(s): %s",
