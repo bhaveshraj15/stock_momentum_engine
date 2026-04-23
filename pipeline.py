@@ -236,6 +236,14 @@ def run(args: argparse.Namespace) -> None:
             "Applying correlation pre-filter (ccp=%.2e)...", args.ccp
         )
         kept_tickers = cf.apply_to_universe(prices)
+        if not kept_tickers:
+            logger.error(
+                "Correlation filter (ccp=%.2e) removed all %d tickers — "
+                "every pair exceeds the correlation cap. "
+                "Try a higher --ccp value.",
+                args.ccp, n_tickers,
+            )
+            sys.exit(1)
         logger.info(
             "Correlation filter: %d → %d tickers",
             n_tickers, len(kept_tickers),
