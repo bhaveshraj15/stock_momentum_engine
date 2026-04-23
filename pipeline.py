@@ -134,9 +134,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Skip the VolumeFilter gate (avg volume check)",
     )
     p.add_argument(
-        "--no-volume-confirm",
+        "--volume-confirm",
         action="store_true",
-        help="Skip the VolumeFilter confirm (vol_21d > vol_63d > vol_252d check)",
+        help="Add VolumeFilter confirm gate (vol_21d > vol_63d > vol_252d)",
     )
     p.add_argument(
         "--min-volume",
@@ -167,9 +167,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Correlation cap parameter for --corr-filter (default: 1.75e-4)",
     )
     p.add_argument(
-        "--diversify",
+        "--no-diversify",
         action="store_true",
-        help="Apply diversification filter after scoring (removes correlated duplicates)",
+        help="Skip the diversification filter (runs by default)",
     )
     p.add_argument(
         "--div-threshold",
@@ -266,12 +266,15 @@ def run(args: argparse.Namespace) -> None:
         for gate in all_gates:
             if args.no_volume_gate and gate.name == "VolumeFilter":
                 continue
-            if args.no_volume_confirm and gate.name == "VolumeConfirm":
-                continue
-            # Override min_volume if user specified
             if gate.name == "VolumeFilter" and not args.no_volume_gate:
                 gate.params["min_avg_volume"] = args.min_volume
             gates.append(gate)
+
+        if args.volume_confirm:
+            gates.append(
+                VolumeFilter(params={"mode": "confirm"}, name="VolumeConfirm")
+            )
+            logger.info("VolumeFilter confirm gate added.")
 
     # Build scorer list
     scorers = [momentum]
@@ -315,8 +318,8 @@ def run(args: argparse.Namespace) -> None:
     else:
         logger.warning("No tickers passed the gate filters.")
 
-    # ── 7. Diversification filter (optional) ────────────────────────
-    if args.diversify and len(passing) > 0:
+    # ── 7. Diversification filter (on by default, --no-diversify to skip) ──
+    if not args.no_diversify and len(passing) > 0:
         from filters.diversification_filter import DiversificationFilter
         div = DiversificationFilter(params={
             "threshold":   args.div_threshold,

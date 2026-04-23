@@ -49,13 +49,15 @@ logger = logging.getLogger(__name__)
 
 def default_gates() -> List[BaseFilter]:
     """
-    Returns the full v1 gate stack:
-        1. TrendFilter          — Close >= EMA100 >= EMA200
-        2. High52wFilter        — within 20% of 52-week high
-        3. MinReturnFilter      — 1-year return >= 6.5%
-        4. UpDaysFilter         — >50% up days in last 6 months
-        5. VolumeFilter gate    — avg volume >= 100k (removes illiquid)
-        6. VolumeFilter confirm — vol_21d > vol_63d > vol_252d (removes fakes)
+    Returns the default gate stack:
+        1. TrendFilter       — Close >= EMA100 >= EMA200
+        2. High52wFilter     — within 20% of 52-week high
+        3. MinReturnFilter   — 1-year return >= 6.5%
+        4. UpDaysFilter      — >= 50% up days in last 6 months
+        5. VolumeFilter gate — avg volume >= 100k (removes illiquid)
+
+    VolumeFilter confirm (vol_21d > vol_63d > vol_252d) is opt-in
+    via --volume-confirm — too strict for a universal default.
 
     Usage:
         scorer = Scorer(gates=default_gates())
@@ -72,7 +74,7 @@ def default_gates() -> List[BaseFilter]:
         MinReturnFilter(),
         UpDaysFilter(),
         VolumeFilter(params={"mode": "gate"}),
-        VolumeFilter(params={"mode": "confirm"}, name="VolumeConfirm"),
+        # VolumeConfirm excluded from defaults — opt-in via --volume-confirm
     ]
 
 
