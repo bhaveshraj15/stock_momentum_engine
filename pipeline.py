@@ -264,9 +264,9 @@ def run(args: argparse.Namespace) -> None:
         all_gates = default_gates()
         gates = []
         for gate in all_gates:
-            if args.no_volume_gate and gate.name == "VolumeFilter":
-                continue
-            if gate.name == "VolumeFilter" and not args.no_volume_gate:
+            if isinstance(gate, VolumeFilter) and gate.params.get("mode") == "gate":
+                if args.no_volume_gate:
+                    continue
                 gate.params["min_avg_volume"] = args.min_volume
             gates.append(gate)
 
