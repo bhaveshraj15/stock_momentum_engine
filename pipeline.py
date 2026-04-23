@@ -65,9 +65,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--output",
         nargs="+",
-        choices=["xlsx", "csv", "numpy"],
-        default=["xlsx"],
-        help="Output format(s): xlsx csv numpy (default: xlsx)",
+        choices=["csv", "numpy"],
+        default=["csv"],
+        help="Output format(s): csv numpy (default: csv)",
     )
     p.add_argument(
         "--mode",
@@ -297,29 +297,14 @@ def run(args: argparse.Namespace) -> None:
     logger.info("Running scorer...")
     result = scorer.run(prices)
 
-    # ── 6. Print summary ─────────────────────────────────────────────
+    # ── 6. Diversification filter (on by default, --no-diversify to skip) ──
     passing = result[result["rank"].notna()]
-    logger.info(
-        "%d/%d tickers passed all gates", len(passing), len(result)
-    )
+    logger.info("%d/%d tickers passed all gates", len(passing), len(result))
 
-    top_n = args.top_n or min(10, len(passing))
-    if len(passing) > 0:
-        top = (
-            passing[["final_score", "rank"]]
-            .sort_values("rank")
-            .head(top_n)
-        )
-        print(f"\n{'─'*40}")
-        print(f"  Top {top_n} — {loader.get_name()}  ({args.mode} mode)")
-        print(f"{'─'*40}")
-        print(top.to_string())
-        print(f"{'─'*40}\n")
-    else:
+    if len(passing) == 0:
         logger.warning("No tickers passed the gate filters.")
 
-    # ── 7. Diversification filter (on by default, --no-diversify to skip) ──
-    if not args.no_diversify and len(passing) > 0:
+    elif not args.no_diversify:
         from filters.diversification_filter import DiversificationFilter
         div = DiversificationFilter(params={
             "threshold":   args.div_threshold,
@@ -329,19 +314,33 @@ def run(args: argparse.Namespace) -> None:
             "Applying diversification filter (threshold=%.2f)...",
             args.div_threshold,
         )
-        final_tickers = div.apply(result, prices)
-        report        = div.get_report(result, prices)
-
+        report = div.get_report(result, prices)
         logger.info(
             "Diversification: %d → %d final picks",
-            len(passing), len(final_tickers),
+            len(passing), (report["status"] == "accepted").sum(),
         )
 
+        accepted = report[report["status"] == "accepted"][["rank", "final_score"]]
+        removed  = report[report["status"] == "removed"][["rank", "final_score", "removed_by", "max_corr"]]
+
+        top_n = args.top_n or len(accepted)
         print(f"\n{'─'*40}")
-        print(f"  Diversification report")
+        print(f"  {loader.get_name()}  ({args.mode} mode)  — final picks")
         print(f"{'─'*40}")
-        print(report[["rank", "final_score", "status", "removed_by", "max_corr"]]
-              .to_string())
+        print(accepted.head(top_n).to_string())
+        if not removed.empty:
+            print(f"\n  Removed by diversification ({len(removed)}):")
+            print(removed.to_string())
+        print(f"{'─'*40}\n")
+
+    else:
+        # No diversification — print top-N from scorer directly
+        top_n = args.top_n or min(10, len(passing))
+        top   = passing[["final_score", "rank"]].sort_values("rank").head(top_n)
+        print(f"\n{'─'*40}")
+        print(f"  Top {top_n} — {loader.get_name()}  ({args.mode} mode)")
+        print(f"{'─'*40}")
+        print(top.to_string())
         print(f"{'─'*40}\n")
 
     # ── 8. Export ────────────────────────────────────────────────────
@@ -350,11 +349,7 @@ def run(args: argparse.Namespace) -> None:
     universe_name = loader.get_name().lower().replace(" ", "_")
 
     for fmt in args.output:
-        if fmt == "xlsx":
-            path = exporter.to_excel(result, universe_name=universe_name)
-            logger.info("Saved → %s", path)
-
-        elif fmt == "csv":
+        if fmt == "csv":
             path = exporter.to_csv(
                 result,
                 universe_name=universe_name,
