@@ -156,8 +156,15 @@ class VolumeFilter(BaseFilter):
                 results[ticker] = float("nan")
                 continue
 
-            window_data = series.iloc[-window:] if len(series) >= window else series
-            avg_vol     = window_data.mean()
+            if len(series) < window:
+                logger.debug(
+                    "%s: %s — only %d rows, need %d. Skipping.",
+                    self.name, ticker, len(series), window,
+                )
+                results[ticker] = float("nan")
+                continue
+
+            avg_vol = series.iloc[-window:].mean()
             passes      = bool(avg_vol >= min_vol)
             results[ticker] = 1.0 if passes else float("nan")
 

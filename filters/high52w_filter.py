@@ -83,14 +83,14 @@ class High52wFilter(BaseFilter):
             series = close[ticker].dropna()
 
             if len(series) < window:
-                # Not enough history — use whatever we have
                 logger.debug(
-                    "%s: %s — only %d rows, using full available history",
-                    self.name, ticker, len(series),
+                    "%s: %s — only %d rows, need %d. Skipping.",
+                    self.name, ticker, len(series), window,
                 )
-                window_data = series
-            else:
-                window_data = series.iloc[-window:]
+                results[ticker] = float("nan")
+                continue
+
+            window_data = series.iloc[-window:]
 
             high_52w    = window_data.max()
             last_close  = series.iloc[-1]

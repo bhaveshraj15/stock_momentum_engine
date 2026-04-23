@@ -82,11 +82,15 @@ class UpDaysFilter(BaseFilter):
         for ticker in close.columns:
             series = close[ticker].dropna()
 
-            # Use available history if shorter than window
-            window_data = series.iloc[-window_days:] if len(series) >= window_days \
-                          else series
+            if len(series) < window_days:
+                logger.debug(
+                    "%s: %s — only %d rows, need %d. Skipping.",
+                    self.name, ticker, len(series), window_days,
+                )
+                results[ticker] = float("nan")
+                continue
 
-            daily_returns = window_data.pct_change().dropna()
+            daily_returns = series.iloc[-window_days:].pct_change().dropna()
 
             if daily_returns.empty:
                 logger.debug("%s: %s — no return data, skipping.", self.name, ticker)
