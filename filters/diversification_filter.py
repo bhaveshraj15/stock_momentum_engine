@@ -114,95 +114,12 @@ class DiversificationFilter:
         """
         Apply greedy diversification to a scored result.
 
-        Parameters
-        ----------
-        result  : pd.DataFrame
-            Output of Scorer.run() — must contain a "rank" column.
-            Tickers with NaN rank (failed gates) are ignored.
-        prices  : pd.DataFrame
-            MultiIndex OHLCV DataFrame from Fetcher — needs "Close".
-
         Returns
         -------
         list of str
             Final diversified ticker list, ordered by rank (best first).
         """
-        threshold   = self.params.get("threshold",   _DEFAULT_THRESHOLD)
-        window_days = self.params.get("window_days", _DEFAULT_WINDOW_DAYS)
-        max_tickers = self.params.get("max_tickers", None)
-
-        # Get ranked tickers (ignore gate failures)
-        ranked = (
-            result[result["rank"].notna()]
-            .sort_values("rank")
-            .index.tolist()
-        )
-
-        if len(ranked) == 0:
-            logger.warning("DiversificationFilter: no ranked tickers to process.")
-            return []
-
-        if len(ranked) == 1:
-            return ranked
-
-        # Build return series for correlation
-        returns = self._compute_returns(prices, window_days)
-
-        # Greedy selection
-        accepted: List[str] = []
-
-        for ticker in ranked:
-            if ticker not in returns.columns:
-                logger.debug(
-                    "DiversificationFilter: %s not in returns, skipping.", ticker
-                )
-                continue
-
-            if len(accepted) == 0:
-                accepted.append(ticker)
-                logger.debug("  ACCEPT %s (first ticker)", ticker)
-                continue
-
-            # Compute correlation with all already-accepted tickers
-            accepted_in_returns = [t for t in accepted if t in returns.columns]
-            corr_with_accepted  = returns[[ticker] + accepted_in_returns].corr()
-            max_corr = (
-                corr_with_accepted[ticker]
-                .drop(ticker)
-                .abs()
-                .max()
-            )
-
-            if max_corr > threshold:
-                conflict = (
-                    corr_with_accepted[ticker]
-                    .drop(ticker)
-                    .abs()
-                    .idxmax()
-                )
-                logger.debug(
-                    "  SKIP   %-20s  max_corr=%.3f with %s (threshold=%.2f)",
-                    ticker, max_corr, conflict, threshold,
-                )
-            else:
-                accepted.append(ticker)
-                logger.debug(
-                    "  ACCEPT %-20s  max_corr=%.3f (below threshold)",
-                    ticker, max_corr,
-                )
-
-            if max_tickers and len(accepted) >= max_tickers:
-                logger.debug("  Reached max_tickers=%d, stopping.", max_tickers)
-                break
-
-        n_in  = len(ranked)
-        n_out = len(accepted)
-        logger.info(
-            "DiversificationFilter (threshold=%.2f): %d → %d tickers "
-            "(removed %d correlated duplicates)",
-            threshold, n_in, n_out, n_in - n_out,
-        )
-
+        accepted, _ = self._greedy(result, prices)
         return accepted
 
     # ------------------------------------------------------------------
@@ -220,12 +137,39 @@ class DiversificationFilter:
         Columns:
             rank          Original momentum rank
             final_score   Original score
-            status        "accepted" | "removed"
+            status        "accepted" | "removed" | "no_data"
             removed_by    Ticker that caused removal (if removed)
             max_corr      Highest correlation with any accepted ticker
         """
+        ranked = (
+            result[result["rank"].notna()]
+            .sort_values("rank")
+            .index.tolist()
+        )
+        _, rows = self._greedy(result, prices)
+        report  = pd.DataFrame(rows, index=ranked)
+        report.index.name = "ticker"
+        return report
+
+    # ------------------------------------------------------------------
+    # Shared greedy algorithm
+    # ------------------------------------------------------------------
+
+    def _greedy(
+        self,
+        result: pd.DataFrame,
+        prices: pd.DataFrame,
+    ):
+        """
+        Run the greedy rank-aware deduplication.
+
+        Returns (accepted, rows) where:
+            accepted  : list of str — tickers that survived
+            rows      : list of dict — one entry per ranked ticker for get_report()
+        """
         threshold   = self.params.get("threshold",   _DEFAULT_THRESHOLD)
         window_days = self.params.get("window_days", _DEFAULT_WINDOW_DAYS)
+        max_tickers = self.params.get("max_tickers", None)
 
         ranked = (
             result[result["rank"].notna()]
@@ -233,8 +177,12 @@ class DiversificationFilter:
             .index.tolist()
         )
 
+        if len(ranked) == 0:
+            logger.warning("DiversificationFilter: no ranked tickers to process.")
+            return [], []
+
         returns  = self._compute_returns(prices, window_days)
-        accepted: List[str] = []
+        accepted: List[str]  = []
         rows:     List[Dict] = []
 
         for ticker in ranked:
@@ -242,6 +190,7 @@ class DiversificationFilter:
             score = result.loc[ticker, "final_score"]
 
             if ticker not in returns.columns:
+                logger.debug("DiversificationFilter: %s not in returns, skipping.", ticker)
                 rows.append({
                     "rank": rank, "final_score": score,
                     "status": "no_data", "removed_by": None, "max_corr": None,
@@ -254,6 +203,7 @@ class DiversificationFilter:
                     "rank": rank, "final_score": score,
                     "status": "accepted", "removed_by": None, "max_corr": 0.0,
                 })
+                logger.debug("  ACCEPT %s (first ticker)", ticker)
                 continue
 
             accepted_in_returns = [t for t in accepted if t in returns.columns]
@@ -263,8 +213,8 @@ class DiversificationFilter:
                 .drop(ticker)
                 .abs()
             )
-            max_corr  = corr_series.max()
-            conflict  = corr_series.idxmax()
+            max_corr = corr_series.max()
+            conflict = corr_series.idxmax()
 
             if max_corr > threshold:
                 rows.append({
@@ -272,6 +222,10 @@ class DiversificationFilter:
                     "status": "removed", "removed_by": conflict,
                     "max_corr": round(max_corr, 4),
                 })
+                logger.debug(
+                    "  SKIP   %-20s  max_corr=%.3f with %s (threshold=%.2f)",
+                    ticker, max_corr, conflict, threshold,
+                )
             else:
                 accepted.append(ticker)
                 rows.append({
@@ -279,10 +233,21 @@ class DiversificationFilter:
                     "status": "accepted", "removed_by": None,
                     "max_corr": round(max_corr, 4),
                 })
+                logger.debug(
+                    "  ACCEPT %-20s  max_corr=%.3f (below threshold)",
+                    ticker, max_corr,
+                )
 
-        report = pd.DataFrame(rows, index=ranked)
-        report.index.name = "ticker"
-        return report
+            if max_tickers and len(accepted) >= max_tickers:
+                logger.debug("  Reached max_tickers=%d, stopping.", max_tickers)
+                break
+
+        logger.info(
+            "DiversificationFilter (threshold=%.2f): %d → %d tickers "
+            "(removed %d correlated duplicates)",
+            threshold, len(ranked), len(accepted), len(ranked) - len(accepted),
+        )
+        return accepted, rows
 
     # ------------------------------------------------------------------
     # Internal

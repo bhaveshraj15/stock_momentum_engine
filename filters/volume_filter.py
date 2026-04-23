@@ -125,6 +125,8 @@ class VolumeFilter(BaseFilter):
             return self._compute_confirm(prices)
         elif mode == "score":
             return self._compute_score(prices)
+        else:
+            raise ValueError(f"VolumeFilter: unknown mode '{mode}'.")
 
     def filter(self, scores: pd.Series) -> pd.Series:
         mode = self.params.get("mode", "gate")
