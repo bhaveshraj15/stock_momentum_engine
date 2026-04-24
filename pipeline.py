@@ -153,7 +153,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--volume-weight",
         type=float,
         default=0.3,
-        help="Weight for VolumeFilter scorer relative to MomentumFilter (default: 0.3)",
+        help="Weight for VolumeFilter scorer (default: 0.3, giving 70-30 split with momentum)",
     )
     p.add_argument(
         "--corr-filter",
@@ -286,7 +286,7 @@ def run(args: argparse.Namespace) -> None:
 
     # Build scorer list
     scorers = [momentum]
-    weights = [1.0]
+    weights = [0.7]
 
     if not args.no_volume_score:
         vol_scorer = VolumeFilter(
