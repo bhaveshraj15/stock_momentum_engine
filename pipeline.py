@@ -362,6 +362,8 @@ def run(args: argparse.Namespace) -> None:
                 result,
                 universe_name=universe_name,
                 passing_only=args.passing_only,
+                top_n=args.top_n,
+                mode=args.mode,
             )
             logger.info("Saved → %s", path)
 

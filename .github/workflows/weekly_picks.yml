@@ -1,0 +1,70 @@
+name: Weekly Momentum Picks
+
+on:
+  schedule:
+    - cron: '30 11 * * 0'   # Sunday 11:30 UTC = 5:00pm IST
+  workflow_dispatch:          # manual trigger from GitHub UI
+
+jobs:
+  weekly-picks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── Nifty 50 ────────────────────────────────────────────────────
+      - name: Run Nifty 50 — returns
+        run: python pipeline.py --universe config/universes/nifty50.yaml --mode returns --top-n 10 --passing-only --output csv
+
+      - name: Run Nifty 50 — sharpe
+        run: python pipeline.py --universe config/universes/nifty50.yaml --mode sharpe --top-n 10 --passing-only --output csv
+
+      - name: Run Nifty 50 — sortino
+        run: python pipeline.py --universe config/universes/nifty50.yaml --mode sortino --top-n 10 --passing-only --output csv
+
+      # ── ETF India 2026 ──────────────────────────────────────────────
+      - name: Run ETF India 2026 — returns
+        run: python pipeline.py --universe config/universes/etf_india_2026.yaml --mode returns --top-n 10 --passing-only --output csv
+
+      - name: Run ETF India 2026 — sharpe
+        run: python pipeline.py --universe config/universes/etf_india_2026.yaml --mode sharpe --top-n 10 --passing-only --output csv
+
+      - name: Run ETF India 2026 — sortino
+        run: python pipeline.py --universe config/universes/etf_india_2026.yaml --mode sortino --top-n 10 --passing-only --output csv
+
+      # ── DAX 40 ──────────────────────────────────────────────────────
+      - name: Run DAX 40 — returns
+        run: python pipeline.py --universe config/universes/dax40.yaml --mode returns --top-n 10 --passing-only --output csv
+
+      - name: Run DAX 40 — sharpe
+        run: python pipeline.py --universe config/universes/dax40.yaml --mode sharpe --top-n 10 --passing-only --output csv
+
+      - name: Run DAX 40 — sortino
+        run: python pipeline.py --universe config/universes/dax40.yaml --mode sortino --top-n 10 --passing-only --output csv
+
+      # ── Cleanup ─────────────────────────────────────────────────────
+      - name: Delete cache and pycache
+        run: |
+          rm -rf data/cache/
+          find . -type d -name __pycache__ -exec rm -rf {} +
+
+      # ── Commit CSVs only ────────────────────────────────────────────
+      - name: Commit weekly picks
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/runs/*.csv
+          git diff --cached --quiet && echo "No changes to commit" || \
+          git commit -m "chore(picks): weekly run $(date +%Y-%m-%d) — nifty50, etf_india_2026, dax40"
+          git push

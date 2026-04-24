@@ -54,6 +54,8 @@ class Exporter:
         universe_name: str = "universe",
         filename: Optional[str] = None,
         passing_only: bool = False,
+        top_n: Optional[int] = None,
+        mode: str = "",
     ) -> Path:
         """
         Write the scorer result DataFrame to a .csv file.
@@ -64,12 +66,14 @@ class Exporter:
         universe_name: str
         filename     : str, optional
         passing_only : bool           If True, only write tickers that passed all gates
+        top_n        : int, optional  If set, only write the top N ranked tickers
+        mode         : str            Scoring mode included in filename (e.g. "returns")
 
         Returns
         -------
         Path to the written file.
         """
-        path = self._build_path(universe_name, "csv", filename)
+        path = self._build_path(universe_name, "csv", filename, mode=mode)
 
         df = result.copy()
         df.index.name = "Ticker"
@@ -78,6 +82,10 @@ class Exporter:
             df = df[df["rank"].notna()]
 
         df = df.sort_values("rank", na_position="last")
+
+        if top_n:
+            df = df.head(top_n)
+
         df.to_csv(path)
 
         logger.info("CSV saved → %s  (%d rows)", path.name, len(df))
@@ -149,11 +157,13 @@ class Exporter:
         universe_name: str,
         ext: str,
         filename: Optional[str],
+        mode: str = "",
     ) -> Path:
         if filename:
             return self.output_dir / filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return self.output_dir / f"{universe_name}_{timestamp}.{ext}"
+        date = datetime.now().strftime("%Y%m%d")
+        suffix = f"_{mode}" if mode else ""
+        return self.output_dir / f"{universe_name}_{date}{suffix}.{ext}"
 
     def __repr__(self) -> str:
         return f"Exporter(output_dir='{self.output_dir}')"
