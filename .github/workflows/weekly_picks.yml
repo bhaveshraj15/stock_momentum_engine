@@ -129,4 +129,4 @@ jobs:
           git add output/runs/*.csv output/runs/*.md
           git diff --cached --quiet && echo "No changes to commit" || \
           git commit -m "chore(picks): weekly run $(date +%Y-%m-%d)"
-          git push origin picks/weekly --force-with-lease
+          git push origin picks/weekly --force
