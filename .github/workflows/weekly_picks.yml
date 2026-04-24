@@ -18,7 +18,7 @@ on:
         type: boolean
         default: true
       modes:
-        description: 'Modes to run (comma-separated: returns,sharpe,sortino)'
+        description: 'Modes (comma-separated: returns,sharpe,sortino)'
         type: string
         default: 'returns,sharpe,sortino'
       top_n:
@@ -48,7 +48,6 @@ jobs:
       - name: Resolve inputs
         id: inputs
         run: |
-          # On scheduled runs, workflow_dispatch inputs are empty — use defaults
           echo "nifty50=${{ inputs.nifty50 == '' && 'true' || inputs.nifty50 }}" >> $GITHUB_OUTPUT
           echo "etf_india=${{ inputs.etf_india == '' && 'true' || inputs.etf_india }}" >> $GITHUB_OUTPUT
           echo "dax40=${{ inputs.dax40 == '' && 'true' || inputs.dax40 }}" >> $GITHUB_OUTPUT
@@ -61,7 +60,7 @@ jobs:
         run: |
           IFS=',' read -ra MODES <<< "${{ steps.inputs.outputs.modes }}"
           for mode in "${MODES[@]}"; do
-            mode=$(echo "$mode" | xargs)  # trim whitespace
+            mode=$(echo "$mode" | xargs)
             echo "Running Nifty 50 — $mode"
             python pipeline.py \
               --universe config/universes/nifty50.yaml \
@@ -103,18 +102,23 @@ jobs:
               --output csv
           done
 
+      # ── Generate markdown report ─────────────────────────────────────
+      - name: Generate report
+        run: python scripts/generate_report.py --date $(date +%Y%m%d) --output-dir output/runs
+
       # ── Cleanup ─────────────────────────────────────────────────────
       - name: Delete cache and pycache
         run: |
           rm -rf data/cache/
           find . -type d -name __pycache__ -exec rm -rf {} +
 
-      # ── Commit CSVs only ────────────────────────────────────────────
-      - name: Commit weekly picks
+      # ── Commit CSVs + MD to picks/weekly branch ──────────────────────
+      - name: Commit to picks/weekly branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add output/runs/*.csv
+          git checkout -B picks/weekly
+          git add output/runs/*.csv output/runs/*.md
           git diff --cached --quiet && echo "No changes to commit" || \
           git commit -m "chore(picks): weekly run $(date +%Y-%m-%d)"
-          git push
+          git push origin picks/weekly --force-with-lease
