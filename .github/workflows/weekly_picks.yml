@@ -3,7 +3,28 @@ name: Weekly Momentum Picks
 on:
   schedule:
     - cron: '30 11 * * 0'   # Sunday 11:30 UTC = 5:00pm IST
-  workflow_dispatch:          # manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      nifty50:
+        description: 'Run Nifty 50'
+        type: boolean
+        default: true
+      etf_india:
+        description: 'Run ETF India 2026'
+        type: boolean
+        default: true
+      dax40:
+        description: 'Run DAX 40'
+        type: boolean
+        default: true
+      modes:
+        description: 'Modes to run (comma-separated: returns,sharpe,sortino)'
+        type: string
+        default: 'returns,sharpe,sortino'
+      top_n:
+        description: 'Top N picks per universe'
+        type: string
+        default: '10'
 
 jobs:
   weekly-picks:
@@ -23,35 +44,64 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # ── Resolve inputs (scheduled runs use all defaults) ────────────
+      - name: Resolve inputs
+        id: inputs
+        run: |
+          # On scheduled runs, workflow_dispatch inputs are empty — use defaults
+          echo "nifty50=${{ inputs.nifty50 == '' && 'true' || inputs.nifty50 }}" >> $GITHUB_OUTPUT
+          echo "etf_india=${{ inputs.etf_india == '' && 'true' || inputs.etf_india }}" >> $GITHUB_OUTPUT
+          echo "dax40=${{ inputs.dax40 == '' && 'true' || inputs.dax40 }}" >> $GITHUB_OUTPUT
+          echo "modes=${{ inputs.modes == '' && 'returns,sharpe,sortino' || inputs.modes }}" >> $GITHUB_OUTPUT
+          echo "top_n=${{ inputs.top_n == '' && '10' || inputs.top_n }}" >> $GITHUB_OUTPUT
+
       # ── Nifty 50 ────────────────────────────────────────────────────
-      - name: Run Nifty 50 — returns
-        run: python pipeline.py --universe config/universes/nifty50.yaml --mode returns --top-n 10 --passing-only --output csv
-
-      - name: Run Nifty 50 — sharpe
-        run: python pipeline.py --universe config/universes/nifty50.yaml --mode sharpe --top-n 10 --passing-only --output csv
-
-      - name: Run Nifty 50 — sortino
-        run: python pipeline.py --universe config/universes/nifty50.yaml --mode sortino --top-n 10 --passing-only --output csv
+      - name: Run Nifty 50
+        if: steps.inputs.outputs.nifty50 == 'true'
+        run: |
+          IFS=',' read -ra MODES <<< "${{ steps.inputs.outputs.modes }}"
+          for mode in "${MODES[@]}"; do
+            mode=$(echo "$mode" | xargs)  # trim whitespace
+            echo "Running Nifty 50 — $mode"
+            python pipeline.py \
+              --universe config/universes/nifty50.yaml \
+              --mode "$mode" \
+              --top-n ${{ steps.inputs.outputs.top_n }} \
+              --passing-only \
+              --output csv
+          done
 
       # ── ETF India 2026 ──────────────────────────────────────────────
-      - name: Run ETF India 2026 — returns
-        run: python pipeline.py --universe config/universes/etf_india_2026.yaml --mode returns --top-n 10 --passing-only --output csv
-
-      - name: Run ETF India 2026 — sharpe
-        run: python pipeline.py --universe config/universes/etf_india_2026.yaml --mode sharpe --top-n 10 --passing-only --output csv
-
-      - name: Run ETF India 2026 — sortino
-        run: python pipeline.py --universe config/universes/etf_india_2026.yaml --mode sortino --top-n 10 --passing-only --output csv
+      - name: Run ETF India 2026
+        if: steps.inputs.outputs.etf_india == 'true'
+        run: |
+          IFS=',' read -ra MODES <<< "${{ steps.inputs.outputs.modes }}"
+          for mode in "${MODES[@]}"; do
+            mode=$(echo "$mode" | xargs)
+            echo "Running ETF India 2026 — $mode"
+            python pipeline.py \
+              --universe config/universes/etf_india_2026.yaml \
+              --mode "$mode" \
+              --top-n ${{ steps.inputs.outputs.top_n }} \
+              --passing-only \
+              --output csv
+          done
 
       # ── DAX 40 ──────────────────────────────────────────────────────
-      - name: Run DAX 40 — returns
-        run: python pipeline.py --universe config/universes/dax40.yaml --mode returns --top-n 10 --passing-only --output csv
-
-      - name: Run DAX 40 — sharpe
-        run: python pipeline.py --universe config/universes/dax40.yaml --mode sharpe --top-n 10 --passing-only --output csv
-
-      - name: Run DAX 40 — sortino
-        run: python pipeline.py --universe config/universes/dax40.yaml --mode sortino --top-n 10 --passing-only --output csv
+      - name: Run DAX 40
+        if: steps.inputs.outputs.dax40 == 'true'
+        run: |
+          IFS=',' read -ra MODES <<< "${{ steps.inputs.outputs.modes }}"
+          for mode in "${MODES[@]}"; do
+            mode=$(echo "$mode" | xargs)
+            echo "Running DAX 40 — $mode"
+            python pipeline.py \
+              --universe config/universes/dax40.yaml \
+              --mode "$mode" \
+              --top-n ${{ steps.inputs.outputs.top_n }} \
+              --passing-only \
+              --output csv
+          done
 
       # ── Cleanup ─────────────────────────────────────────────────────
       - name: Delete cache and pycache
@@ -66,5 +116,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add output/runs/*.csv
           git diff --cached --quiet && echo "No changes to commit" || \
-          git commit -m "chore(picks): weekly run $(date +%Y-%m-%d) — nifty50, etf_india_2026, dax40"
+          git commit -m "chore(picks): weekly run $(date +%Y-%m-%d)"
           git push
