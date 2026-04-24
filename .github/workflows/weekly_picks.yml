@@ -48,11 +48,19 @@ jobs:
       - name: Resolve inputs
         id: inputs
         run: |
-          echo "nifty50=${{ inputs.nifty50 == '' && 'true' || inputs.nifty50 }}" >> $GITHUB_OUTPUT
-          echo "etf_india=${{ inputs.etf_india == '' && 'true' || inputs.etf_india }}" >> $GITHUB_OUTPUT
-          echo "dax40=${{ inputs.dax40 == '' && 'true' || inputs.dax40 }}" >> $GITHUB_OUTPUT
-          echo "modes=${{ inputs.modes == '' && 'returns,sharpe,sortino' || inputs.modes }}" >> $GITHUB_OUTPUT
-          echo "top_n=${{ inputs.top_n == '' && '10' || inputs.top_n }}" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "nifty50=true"      >> $GITHUB_OUTPUT
+            echo "etf_india=true"    >> $GITHUB_OUTPUT
+            echo "dax40=true"        >> $GITHUB_OUTPUT
+            echo "modes=returns,sharpe,sortino" >> $GITHUB_OUTPUT
+            echo "top_n=10"          >> $GITHUB_OUTPUT
+          else
+            echo "nifty50=${{ inputs.nifty50 }}"   >> $GITHUB_OUTPUT
+            echo "etf_india=${{ inputs.etf_india }}" >> $GITHUB_OUTPUT
+            echo "dax40=${{ inputs.dax40 }}"       >> $GITHUB_OUTPUT
+            echo "modes=${{ inputs.modes }}"       >> $GITHUB_OUTPUT
+            echo "top_n=${{ inputs.top_n }}"       >> $GITHUB_OUTPUT
+          fi
 
       # ── Nifty 50 ────────────────────────────────────────────────────
       - name: Run Nifty 50
