@@ -63,15 +63,7 @@ class MomentumFilter(BaseFilter):
     """
 
     def _validate_params(self) -> None:
-        lookbacks = self.params.get("lookbacks", _DEFAULT_LOOKBACKS)
-        weights   = self.params.get("weights")
-        mode      = self.params.get("mode", _DEFAULT_MODE)
-
-        if weights is not None and len(weights) != len(lookbacks):
-            raise ValueError(
-                f"MomentumFilter: weights length ({len(weights)}) must match "
-                f"lookbacks length ({len(lookbacks)})."
-            )
+        mode = self.params.get("mode", _DEFAULT_MODE)
         if mode not in ("returns", "sharpe", "sortino"):
             raise ValueError(
                 f"MomentumFilter: mode must be 'returns', 'sharpe', or "
@@ -84,74 +76,63 @@ class MomentumFilter(BaseFilter):
 
     def compute(self, prices: pd.DataFrame) -> pd.Series:
         """
-        Compute weighted momentum score for each ticker.
+        Compute momentum score using sum-of-ordinal-ranks across periods.
 
-        For each lookback period:
-            window = close[(period * -21) - 1:]        ← notebook boundary fix
-            score  = close.iloc[-1] / close.iloc[0] - 1  (returns mode)
-                   | sharpe ratio                         (sharpe mode)
-                   | sortino ratio                        (sortino mode)
+        For each lookback period p:
+            raw_score[ticker, p] = metric value (return / sharpe / sortino)
 
-        Final score = weighted average across all periods.
+        Then rank ALL tickers by each period separately (rank 1 = best).
+        Sum the ranks per ticker — lowest sum = most consistently strong.
+        Return the negative sum so higher output = better (Scorer expects that).
+
+        A ticker ranked #1 in all 4 periods gets sum=4 → output=-4 (best).
+        A ticker ranked last in all 4 periods gets sum=4N → output=-4N (worst).
         """
         lookbacks      = self.params.get("lookbacks",      _DEFAULT_LOOKBACKS)
-        weights        = self.params.get("weights",        [1.0] * len(lookbacks))
         mode           = self.params.get("mode",           _DEFAULT_MODE)
         risk_free_rate = self.params.get("risk_free_rate", _DEFAULT_RISK_FREE_RATE)
 
-        if weights is None:
-            weights = [1.0] * len(lookbacks)
+        close   = self._get_close(prices)
+        tickers = close.columns.tolist()
 
-        close = self._get_close(prices)
+        # ── Build raw score matrix: rows=tickers, cols=periods ────────
+        period_scores = pd.DataFrame(index=tickers, columns=lookbacks, dtype=float)
 
-        results = {}
-        for ticker in close.columns:
+        for ticker in tickers:
             series = close[ticker].dropna()
-
-            period_scores  = []
-            period_weights = []
-
-            for period, weight in zip(lookbacks, weights):
+            for period in lookbacks:
                 needed = (period * 21) + 1
                 if len(series) < needed:
                     logger.debug(
-                        "%s: %s — %d rows available, need %d for %dm. Skipping.",
+                        "%s: %s — %d rows, need %d for %dm.",
                         self.name, ticker, len(series), needed, period,
                     )
+                    period_scores.loc[ticker, period] = float("nan")
                     continue
 
-                # Exact notebook slice: (period * -21) - 1
                 window = series.iloc[(period * -21) - 1:]
-                score  = self._compute_period_score(
-                    window, period, mode, risk_free_rate
+                score  = self._compute_period_score(window, period, mode, risk_free_rate)
+                period_scores.loc[ticker, period] = (
+                    score if (score is not None and np.isfinite(score)) else float("nan")
                 )
 
-                if score is not None and np.isfinite(score):
-                    period_scores.append(score)
-                    period_weights.append(weight)
+        # ── Rank each period column independently (rank 1 = best) ─────
+        rank_matrix = period_scores.rank(
+            ascending=False, method="min", na_option="keep"
+        )
 
-            if not period_scores:
-                results[ticker] = float("nan")
-                continue
+        # ── Sum ranks across all periods; NaN if ticker missed all ────
+        sum_of_ranks = rank_matrix.sum(axis=1, min_count=1)
 
-            total_weight   = sum(period_weights)
-            weighted_score = sum(
-                s * w for s, w in zip(period_scores, period_weights)
-            )
-            results[ticker] = weighted_score / total_weight
-
-            logger.debug(
-                "%s | %-20s  score=%.4f",
-                self.name, ticker, results[ticker],
-            )
+        # ── Negate: higher output = lower rank sum = better ───────────
+        result = -sum_of_ranks
+        result.name = self.name
 
         logger.info(
-            "%s (%s): scored %d/%d tickers",
-            self.name, mode,
-            sum(1 for v in results.values() if np.isfinite(v)),
-            len(results),
+            "%s (%s): scored %d/%d tickers via sum-of-ranks over %s",
+            self.name, mode, int(result.notna().sum()), len(tickers), lookbacks,
         )
-        return pd.Series(results, name=self.name)
+        return result
 
     def filter(self, scores: pd.Series) -> pd.Series:
         """

@@ -79,15 +79,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--lookbacks",
         nargs="+",
         type=int,
-        default=[1, 3, 6, 12],
-        help="Lookback periods in months (default: 1 3 6 12)",
-    )
-    p.add_argument(
-        "--weights",
-        nargs="+",
-        type=float,
-        default=None,
-        help="Weights for each lookback (default: equal weights)",
+        default=[3, 6, 9, 12],
+        help="Lookback periods in months (default: 3 6 9 12)",
     )
     p.add_argument(
         "--output-dir",
@@ -129,20 +122,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Skip all gate filters, score the entire universe",
     )
     p.add_argument(
-        "--no-volume-gate",
-        action="store_true",
-        help="Skip the VolumeFilter gate (avg volume check)",
-    )
-    p.add_argument(
         "--volume-confirm",
         action="store_true",
         help="Add VolumeFilter confirm gate (vol_21d > vol_63d > vol_252d)",
-    )
-    p.add_argument(
-        "--min-volume",
-        type=float,
-        default=1e5,
-        help="Minimum average daily volume for gate mode (default: 100000)",
     )
     p.add_argument(
         "--no-volume-score",
@@ -261,23 +243,14 @@ def run(args: argparse.Namespace) -> None:
 
     momentum = MomentumFilter(params={
         "lookbacks": args.lookbacks,
-        "weights":   args.weights,
         "mode":      args.mode,
     })
 
-    # Build gate list — start from default, selectively remove volume gates
+    # Build gate list
     if args.no_gates:
         gates = []
     else:
-        all_gates = default_gates()
-        gates = []
-        for gate in all_gates:
-            if isinstance(gate, VolumeFilter) and gate.params.get("mode") == "gate":
-                if args.no_volume_gate:
-                    continue
-                gate.params["min_avg_volume"] = args.min_volume
-            gates.append(gate)
-
+        gates = default_gates()
         if args.volume_confirm:
             gates.append(
                 VolumeFilter(params={"mode": "confirm"}, name="VolumeConfirm")
@@ -386,17 +359,6 @@ def main() -> None:
     if not universe_path.exists():
         logger.error("Universe config not found: %s", args.universe)
         sys.exit(1)
-
-    if args.weights is not None:
-        if len(args.weights) != len(args.lookbacks):
-            logger.error(
-                "--weights length (%d) must match --lookbacks length (%d).",
-                len(args.weights), len(args.lookbacks),
-            )
-            sys.exit(1)
-        if sum(args.weights) <= 0:
-            logger.error("--weights must sum to > 0, got %s.", args.weights)
-            sys.exit(1)
 
     try:
         run(args)

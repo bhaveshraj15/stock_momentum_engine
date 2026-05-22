@@ -51,30 +51,19 @@ def default_gates() -> List[BaseFilter]:
     """
     Returns the default gate stack:
         1. TrendFilter       — Close >= EMA100 >= EMA200
-        2. High52wFilter     — within 20% of 52-week high
-        3. MinReturnFilter   — 1-year return >= 6.5%
-        4. UpDaysFilter      — >= 50% up days in last 6 months
-        5. VolumeFilter gate — avg volume >= 100k (removes illiquid)
+        2. MinReturnFilter   — 1-year return >= 6.5%
 
-    VolumeFilter confirm (vol_21d > vol_63d > vol_252d) is opt-in
-    via --volume-confirm — too strict for a universal default.
-
-    Usage:
-        scorer = Scorer(gates=default_gates())
+    Deliberately minimal — matches the ETF momentum filter that works in
+    production. High52wFilter and UpDaysFilter are excluded because they
+    cause whipsaw: everything fails simultaneously in a correction, the
+    portfolio goes to cash, and re-entries happen at the top of the bounce.
     """
     from filters.trend_filter      import TrendFilter
-    from filters.high52w_filter    import High52wFilter
     from filters.min_return_filter import MinReturnFilter
-    from filters.up_days_filter    import UpDaysFilter
-    from filters.volume_filter     import VolumeFilter
 
     return [
         TrendFilter(),
-        High52wFilter(),
         MinReturnFilter(),
-        UpDaysFilter(),
-        VolumeFilter(params={"mode": "gate"}),
-        # VolumeConfirm excluded from defaults — opt-in via --volume-confirm
     ]
 
 
@@ -183,8 +172,8 @@ class Scorer:
                 raw = scorer_filter.apply(passing_prices).reindex(passed_tickers)
                 result.loc[passed_tickers, scorer_filter.name] = raw
 
-                # Min-max normalise to [0, 1] so scales are comparable
-                score_matrix[scorer_filter.name] = self._minmax(raw)
+                # Percentile-rank normalise to (0, 1] — outlier-immune
+                score_matrix[scorer_filter.name] = self._rank_normalize(raw)
 
             weights = self._resolve_weights()
             weighted     = score_matrix.mul(weights, axis=1)
@@ -214,15 +203,13 @@ class Scorer:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _minmax(self, s: pd.Series) -> pd.Series:
-        """Normalise a Series to [0, 1]. Returns 1.0 everywhere if all equal."""
-        valid = s.dropna()
-        if valid.empty:
-            return s
-        lo, hi = valid.min(), valid.max()
-        if hi == lo:
-            return s.where(s.isna(), 1.0)
-        return (s - lo) / (hi - lo)
+    def _rank_normalize(self, s: pd.Series) -> pd.Series:
+        """
+        Percentile-rank normalise to (0, 1].
+        Highest raw value → 1.0, lowest → 1/n.
+        Immune to outliers — a value of 100 vs 1 doesn't compress the rest.
+        """
+        return s.rank(ascending=True, pct=True, na_option="keep")
 
     def _resolve_weights(self) -> List[float]:
         """Return weights list — equal if not specified."""
