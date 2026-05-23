@@ -274,7 +274,7 @@ def run(args: argparse.Namespace) -> None:
 
     # Build scorer list
     scorers = [momentum]
-    weights = [0.7]
+    weights = [1 - args.volume_weight]
 
     if not args.no_volume_score:
         vol_scorer = VolumeFilter(
