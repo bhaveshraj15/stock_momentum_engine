@@ -13,6 +13,7 @@ A systematic momentum screener for equities and ETFs. Fetches price data, applie
 - [CLI Reference](#cli-reference)
 - [Filters Reference](#filters-reference)
 - [Universes](#universes)
+- [Backtesting](#backtesting)
 - [Weekly Automation](#weekly-automation)
 - [Known Limitations](#known-limitations)
 - [Assumptions](#assumptions)
@@ -319,6 +320,105 @@ tickers:
 
 ---
 
+## Backtesting
+
+The backtest engine replays the momentum strategy on historical data using a strict walk-forward simulation — no lookahead, no future prices ever touch the scoring pipeline.
+
+### How It Works
+
+```
+For each rebalance date R:
+    prices.loc[:R]  ← slice to R only (zero lookahead)
+        ↓
+    Full scoring pipeline (same gates + scorers as pipeline.py)
+        ↓
+    DiversificationFilter → top_n picks
+        ↓
+    Portfolio.rebalance_to(picks, prices_on_R, R)
+
+Every trading day:
+    Portfolio.update_prices(day_prices, day)  ← mark to market
+        ↓
+Equity curve = NAV history / initial_cash × 100  (indexed to 100)
+```
+
+### Running a Backtest
+
+```bash
+# Basic run — Nifty 50, 2018–2024, monthly rebalance
+python backtest_run.py \
+    --universe config/universes/nifty50.yaml \
+    --start 2018-01-01 \
+    --end   2024-12-31
+
+# Sharpe mode, weekly rebalance, top 5 picks
+python backtest_run.py \
+    --universe config/universes/nifty50.yaml \
+    --start 2018-01-01 --end 2024-12-31 \
+    --mode sharpe --rebalance weekly --top-n 5
+
+# No gate filters, no diversification — score the full universe
+python backtest_run.py \
+    --start 2018-01-01 --end 2024-12-31 \
+    --no-gates --no-diversify
+
+# Save all outputs to CSV
+python backtest_run.py \
+    --start 2018-01-01 --end 2024-12-31 \
+    --output csv
+```
+
+### Backtest CLI Reference
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--universe` | `config/universes/nifty50.yaml` | Path to universe YAML |
+| `--start` | required | Backtest start date `YYYY-MM-DD` |
+| `--end` | required | Backtest end date `YYYY-MM-DD` |
+| `--initial-cash` | `1,000,000` | Starting cash for portfolio simulation |
+| `--top-n` | `10` | Tickers to hold per period |
+| `--rebalance` | `monthly` | `weekly`, `monthly`, `quarterly` |
+| `--mode` | `returns` | Scoring mode: `returns`, `sharpe`, `sortino` |
+| `--lookbacks` | `3 6 9 12` | Lookback periods in months |
+| `--lookback-days` | `730` | Days of price history fed to scorer |
+| `--ema-fast` | `50` | Fast EMA span for TrendFilter |
+| `--ema-slow` | `100` | Slow EMA span for TrendFilter |
+| `--no-gates` | off | Skip all gate filters |
+| `--volume-confirm` | off | Add volume buildup gate (opt-in) |
+| `--no-volume-score` | off | Disable volume scorer |
+| `--volume-weight` | `0.3` | Weight of volume scorer |
+| `--no-diversify` | off | Skip diversification filter |
+| `--div-threshold` | `0.85` | Max correlation between final picks |
+| `--max-picks` | none | Hard cap on final output after diversification |
+| `--benchmark` | none | Benchmark ticker (e.g. `^NSEI`, `^GDAXI`) |
+| `--cache-dir` | `data/cache` | Cache directory |
+| `--output` | none | `csv` — save all outputs to `output/backtests/` |
+| `-v, --verbose` | off | Print rebalance blocks with buys/sells |
+
+### Metrics
+
+| Metric | Description |
+|--------|-------------|
+| Total Return | `(Final NAV / Initial NAV) - 1` |
+| CAGR | Compound annual growth rate |
+| Max Drawdown | Peak-to-trough decline (worst case) |
+| Sharpe Ratio | Annualised excess return / annualised volatility |
+| Calmar Ratio | CAGR / \|Max Drawdown\| |
+
+### Output Files (with `--output csv`)
+
+```
+output/backtests/
+  backtest_<universe>_<ts>_equity.csv        — daily NAV equity curve
+  backtest_<universe>_<ts>_rebalances.csv    — rebalance history with picks
+  portfolio_<ts>_holdings.csv               — current open positions
+  portfolio_<ts>_transactions.csv           — all buys and sells
+  portfolio_<ts>_closed_positions.csv       — closed round-trips with P&L
+  portfolio_<ts>_nav_history.csv            — daily NAV snapshots
+```
+
+---
+
 ## Weekly Automation
 
 The engine runs automatically every Sunday at 5:00pm IST via GitHub Actions, producing picks for Monday morning.
@@ -425,7 +525,8 @@ Then register it in `filters/__init__.py` and wire it into `pipeline.py`.
 
 ```
 stock_momentum_engine/
-├── pipeline.py                  Main entry point — fetch, filter, score, export
+├── pipeline.py                  Screener — fetch, filter, score, export
+├── backtest_run.py              Single backtest run CLI
 ├── config/
 │   └── universes/               Universe YAML files
 │       ├── nifty50.yaml
@@ -447,9 +548,16 @@ stock_momentum_engine/
 │   └── diversification_filter.py Post-scorer deduplication
 ├── scoring/
 │   └── scorer.py                Orchestrates gates + scorers → ranked output
+├── backtest/
+│   ├── engine.py                Walk-forward backtest engine
+│   ├── portfolio.py             Position sizing, execution, NAV tracking
+│   ├── metrics.py               CAGR, Sharpe, Calmar, drawdown
+│   ├── result.py                Result container — summary(), to_csv()
+│   └── reporter.py              Verbose rebalance block formatter
 ├── output/
 │   ├── exporter.py              CSV and numpy export
-│   └── runs/                    Output files (gitignored except picks/weekly)
+│   ├── runs/                    Screener output (gitignored except picks/weekly)
+│   └── backtests/               Backtest output CSVs (gitignored)
 ├── scripts/
 │   └── generate_report.py       Markdown report generator
 └── .github/
