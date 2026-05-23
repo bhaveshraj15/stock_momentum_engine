@@ -1,6 +1,6 @@
 # Stock Momentum Engine
 
-A systematic momentum screener for equities and ETFs. Fetches price data, applies a configurable stack of gate filters and scoring filters, diversifies the output, and produces a ranked list of picks — automatically every Sunday via GitHub Actions.
+A systematic momentum screener for equities and ETFs. Fetches price data, applies a configurable stack of gate filters and scoring filters, and produces a ranked list of picks — automatically every Sunday via GitHub Actions.
 
 ---
 
@@ -30,17 +30,14 @@ Universe (YAML)
 Fetcher — downloads OHLCV price data (yfinance, cached)
     ↓
 Gate Filters — hard boolean pass/fail (AND logic)
-    TrendFilter       → Close >= EMA100 >= EMA200
-    High52wFilter     → within 20% of 52-week high
-    MinReturnFilter   → 1-year return >= 6.5%
-    UpDaysFilter      → >= 50% up days in last 6 months
-    VolumeFilter      → avg daily volume >= 100k
+    TrendFilter       → Close >= EMA50 >= EMA100
+    MinReturnFilter   → 1-year return >= rfr (per-universe)
     ↓
 Scoring Filters — continuous signal (higher = better)
-    MomentumFilter    → weighted multi-period return/sharpe/sortino
+    MomentumFilter    → sum-of-ordinal-ranks across 3m/6m/9m/12m periods
     VolumeFilter      → volume trend multiplier (weight 0.3)
     ↓
-Min-max normalise → weighted average → final_score → rank
+Percentile-rank normalise → weighted average → final_score → rank
     ↓
 DiversificationFilter — greedy rank-aware deduplication
     Remove correlated near-clones, keep the higher-ranked one
@@ -58,7 +55,7 @@ Momentum — the tendency of assets that have performed well recently to continu
 
 This engine implements a systematic momentum strategy with three layers of signal validation:
 
-1. **Trend confirmation** — the stock must be in a medium and long-term uptrend (EMA alignment)
+1. **Trend confirmation** — the stock must be above its EMA50 and EMA100 (configurable, default 50/100)
 2. **Momentum scoring** — rank by risk-adjusted returns over multiple lookback periods
 3. **Volume confirmation** — price moves backed by growing volume are more reliable
 
@@ -87,7 +84,17 @@ sortino = (sum(daily_returns) - rfr * period/12) / (downside_std * sqrt(n_days))
 
 ### Multi-Period Scoring
 
-Each scoring mode runs across multiple lookback periods (default: 1m, 3m, 6m, 12m) and combines them into a weighted average. This captures both short-term momentum and longer-term trend persistence.
+Each scoring mode runs across four lookback periods (default: 3m, 6m, 9m, 12m). Rather than averaging raw scores — which lets a single strong month dominate — the engine ranks all tickers independently for each period and sums the ordinal ranks. The ticker with the lowest rank sum wins: it was consistently near the top across all timeframes, not just a flash performer in one.
+
+```
+period_scores:   3M    6M    9M   12M
+  TCS          2.1   0.3   0.2   0.1   ← strong 3M, weak everywhere else
+  INFY         0.8   0.7   0.8   0.7   ← consistently solid
+
+rank each period:
+  TCS          1     3     3     3     → sum = 10  (loses)
+  INFY         2     1     1     1     → sum =  5  (wins)
+```
 
 ### Volume Confirmation
 
@@ -172,8 +179,8 @@ python pipeline.py --no-diversify
 # Skip all gate filters (score the entire universe)
 python pipeline.py --no-gates
 
-# Custom lookbacks with front-weighted scoring
-python pipeline.py --lookbacks 1 3 6 12 --weights 4 3 2 1
+# Custom lookback periods
+python pipeline.py --lookbacks 3 6 9 12
 
 # Correlation pre-filter for large universes
 python pipeline.py --universe config/universes/etf_india_2026.yaml --corr-filter
@@ -197,8 +204,7 @@ python pipeline.py --universe config/universes/etf_india_2026.yaml --corr-filter
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--mode` | `returns` | Scoring mode: `returns`, `sharpe`, `sortino` |
-| `--lookbacks` | `1 3 6 12` | Lookback periods in months |
-| `--weights` | equal | Weight per lookback period |
+| `--lookbacks` | `3 6 9 12` | Lookback periods in months |
 | `--no-volume-score` | off | Disable volume scorer (on by default at 0.3 weight) |
 | `--volume-weight` | `0.3` | Weight of volume scorer relative to momentum |
 
@@ -207,9 +213,9 @@ python pipeline.py --universe config/universes/etf_india_2026.yaml --corr-filter
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--no-gates` | off | Skip all gate filters |
-| `--no-volume-gate` | off | Skip avg-volume gate |
-| `--min-volume` | `100000` | Minimum average daily volume |
-| `--volume-confirm` | off | Add volume buildup gate (opt-in) |
+| `--ema-fast` | `50` | Fast EMA span for TrendFilter |
+| `--ema-slow` | `100` | Slow EMA span for TrendFilter |
+| `--volume-confirm` | off | Add volume buildup gate: vol_21d > vol_63d > vol_252d (opt-in) |
 
 ### Output
 
@@ -242,25 +248,31 @@ python pipeline.py --universe config/universes/etf_india_2026.yaml --corr-filter
 
 ### Gate Filters (pass/fail)
 
-| Filter | Default Params | What It Checks |
-|--------|---------------|----------------|
-| `TrendFilter` | EMA 100/200 | Close >= EMA100 >= EMA200 |
-| `High52wFilter` | window=252, proximity=0.80 | Close within 20% of 52-week high |
-| `MinReturnFilter` | min_return=6.5%, window=252 | 1-year return >= threshold |
-| `UpDaysFilter` | min_up_pct=50%, window=126 | >= 50% positive days in 6 months |
-| `VolumeFilter (gate)` | min_avg_vol=100k, window=252 | Average daily volume >= minimum |
-| `VolumeFilter (confirm)` | window=252 | vol_21d > vol_63d > vol_252d (opt-in) |
+Default gate stack (2 filters, AND logic):
 
-All gates use AND logic — a ticker must pass every gate to reach the scorer. Tickers with insufficient price history (< required window) are excluded rather than using partial data.
+| Filter | Params | What It Checks |
+|--------|--------|----------------|
+| `TrendFilter` | EMA 50/100 (configurable) | Close >= EMA50 >= EMA100 |
+| `MinReturnFilter` | min_return=rfr (from universe YAML) | 1-year return >= threshold |
+
+Additional filters available but not in defaults:
+
+| Filter | What It Checks |
+|--------|----------------|
+| `High52wFilter` | Close within 20% of 52-week high |
+| `UpDaysFilter` | >= 50% positive days in last 6 months |
+| `VolumeFilter (confirm)` | vol_21d > vol_63d > vol_252d — opt-in via `--volume-confirm` |
+
+All gates use AND logic. Tickers with insufficient price history are excluded rather than using partial data.
 
 ### Scoring Filters (continuous)
 
 | Filter | Weight | What It Scores |
 |--------|--------|---------------|
-| `MomentumFilter` | 0.7 | Multi-period return / sharpe / sortino |
+| `MomentumFilter` | 0.7 | Sum-of-ordinal-ranks across 3m/6m/9m/12m periods |
 | `VolumeFilter (score)` | 0.3 | Volume trend confirmation multiplier |
 
-Scorer outputs are min-max normalised to [0, 1] before combining. Weights are applied per-ticker using only the scorers that produced a valid signal — a ticker missing one scorer's data is not penalised against tickers with full coverage.
+Scorer outputs are percentile-rank normalised to (0, 1] before combining — outlier-immune and scale-independent. Weights are applied per-ticker using only scorers that produced a valid signal.
 
 ### Post-Scoring Filters
 
@@ -276,7 +288,13 @@ Scorer outputs are min-max normalised to [0, 1] before combining. Weights are ap
 Universes are defined as YAML files in `config/universes/`. Each file specifies a name and a list of ticker symbols.
 
 ```yaml
-name: Nifty 50
+meta:
+  name: "Nifty 50"
+  exchange: "NSE"
+  currency: "INR"
+  rfr: 0.065       # risk-free rate — used in Sharpe/Sortino and gate filter
+  suffix: ".NS"
+
 tickers:
   - RELIANCE.NS
   - TCS.NS
@@ -294,9 +312,10 @@ tickers:
 
 ### Adding a New Universe
 
-1. Create `config/universes/my_universe.yaml`
-2. Add `name` and `tickers` (use yfinance ticker format, e.g. `.NS` for NSE, `.DE` for Deutsche Börse)
-3. Run: `python pipeline.py --universe config/universes/my_universe.yaml`
+1. Copy `config/universes/universe_template.yaml` and rename it
+2. Fill in the `meta` block: `name`, `exchange`, `currency`, `rfr`, `suffix`
+3. Add your tickers (inline list or `csv_source`)
+4. Run: `python pipeline.py --universe config/universes/my_universe.yaml`
 
 ---
 
@@ -359,7 +378,7 @@ The engine ranks picks but does not size positions. Equal weighting is assumed. 
 
 | Assumption | Value | Reason |
 |------------|-------|--------|
-| Risk-free rate | 6.5% p.a. | Matches Indian T-bill rate at notebook creation |
+| Risk-free rate | per-universe YAML (`rfr`) | INR=6.5%, EUR=4%, USD=5% — set in universe metadata |
 | Trading days per year | 252 | Market standard |
 | Trading days per month | 21 | 252 / 12 approximation |
 | Minimum volume | 100,000 | Liquidity floor from original notebook |
@@ -406,7 +425,7 @@ Then register it in `filters/__init__.py` and wire it into `pipeline.py`.
 
 ```
 stock_momentum_engine/
-├── pipeline.py                  Main entry point
+├── pipeline.py                  Main entry point — fetch, filter, score, export
 ├── config/
 │   └── universes/               Universe YAML files
 │       ├── nifty50.yaml
@@ -419,18 +438,18 @@ stock_momentum_engine/
 ├── filters/
 │   ├── base_filter.py           Abstract base class
 │   ├── trend_filter.py          EMA alignment gate
-│   ├── high52w_filter.py        52-week high proximity gate
+│   ├── high52w_filter.py        52-week high proximity gate (opt-in)
 │   ├── min_return_filter.py     Minimum return gate
-│   ├── up_days_filter.py        Up-days breadth gate
+│   ├── up_days_filter.py        Up-days breadth gate (opt-in)
 │   ├── volume_filter.py         Volume gate / confirm / scorer
-│   ├── momentum_filter.py       Multi-period momentum scorer
+│   ├── momentum_filter.py       Sum-of-ranks momentum scorer
 │   ├── correlation_filter.py    Universe pre-screen
 │   └── diversification_filter.py Post-scorer deduplication
 ├── scoring/
 │   └── scorer.py                Orchestrates gates + scorers → ranked output
 ├── output/
 │   ├── exporter.py              CSV and numpy export
-│   └── runs/                    Output files (gitignored except on picks/weekly)
+│   └── runs/                    Output files (gitignored except picks/weekly)
 ├── scripts/
 │   └── generate_report.py       Markdown report generator
 └── .github/
