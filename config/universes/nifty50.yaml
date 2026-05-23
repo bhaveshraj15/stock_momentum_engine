@@ -2,6 +2,7 @@ meta:
   name: "Nifty 50"
   exchange: "NSE"
   currency: "INR"
+  rfr: 0.065
   suffix: ".NS"
   description: >
     Nifty 50 — the top 50 large-cap stocks on the National Stock Exchange of India.

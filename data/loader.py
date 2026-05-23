@@ -122,6 +122,10 @@ class UniverseLoader:
     def get_currency(self) -> str:
         return self._meta.get("currency", "")
 
+    def get_rfr(self) -> float:
+        """Annual risk-free rate for this universe (from meta.rfr)."""
+        return float(self._meta.get("rfr", 0.065))
+
     def __len__(self) -> int:
         return len(self._tickers)
 

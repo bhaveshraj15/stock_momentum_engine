@@ -2,6 +2,7 @@ meta:
   name: "Indian ETFs"
   exchange: "NSE"
   currency: "INR"
+  rfr: 0.065
   suffix: ".NS"
   source: "NSE ETF Market Watch — MW-ETF-16-Apr-2026.csv"
   total_tickers: 322

@@ -47,23 +47,29 @@ from filters.base_filter import BaseFilter
 logger = logging.getLogger(__name__)
 
 
-def default_gates() -> List[BaseFilter]:
+def default_gates(rfr: float = 0.065) -> List[BaseFilter]:
     """
     Returns the default gate stack:
         1. TrendFilter       — Close >= EMA100 >= EMA200
-        2. MinReturnFilter   — 1-year return >= 6.5%
+        2. MinReturnFilter   — 1-year return >= rfr (default 6.5%)
 
     Deliberately minimal — matches the ETF momentum filter that works in
     production. High52wFilter and UpDaysFilter are excluded because they
     cause whipsaw: everything fails simultaneously in a correction, the
     portfolio goes to cash, and re-entries happen at the top of the bounce.
+
+    Parameters
+    ----------
+    rfr : float
+        Annual risk-free rate. Used as the minimum return hurdle in
+        MinReturnFilter. Pass 0.04 for EUR, 0.05 for USD, 0.065 for INR.
     """
     from filters.trend_filter      import TrendFilter
     from filters.min_return_filter import MinReturnFilter
 
     return [
         TrendFilter(),
-        MinReturnFilter(),
+        MinReturnFilter(params={"min_return": rfr}),
     ]
 
 

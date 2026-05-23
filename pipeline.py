@@ -241,16 +241,19 @@ def run(args: argparse.Namespace) -> None:
     from filters.volume_filter   import VolumeFilter
     from scoring.scorer          import Scorer, default_gates
 
+    rfr = loader.get_rfr()
+
     momentum = MomentumFilter(params={
-        "lookbacks": args.lookbacks,
-        "mode":      args.mode,
+        "lookbacks":      args.lookbacks,
+        "mode":           args.mode,
+        "risk_free_rate": rfr,
     })
 
     # Build gate list
     if args.no_gates:
         gates = []
     else:
-        gates = default_gates()
+        gates = default_gates(rfr=rfr)
         if args.volume_confirm:
             gates.append(
                 VolumeFilter(params={"mode": "confirm"}, name="VolumeConfirm")

@@ -2,6 +2,7 @@ meta:
   name: "DAX 40"
   exchange: "XETRA"
   currency: "EUR"
+  rfr: 0.04
   suffix: ".DE"           # yfinance uses .DE for Xetra-listed stocks
   description: >
     DAX 40 — Germany's 40 largest publicly listed companies.

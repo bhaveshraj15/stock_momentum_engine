@@ -38,6 +38,11 @@ meta:
   # Examples: "INR", "USD", "EUR", "GBP"
   currency: "INR"
 
+  # Annual risk-free rate for this market (used in Sharpe/Sortino scoring
+  # and as the minimum return hurdle in the gate filter)
+  # Common values: INR → 0.065  |  USD → 0.05  |  EUR → 0.04  |  GBP → 0.045
+  rfr: 0.065
+
   # Suffix automatically appended to tickers that don't already have one
   # Set to "" (empty string) for US tickers which need no suffix
   # Common values: ".NS" (NSE), ".BO" (BSE), ".DE" (Germany), ".L" (UK), ""
@@ -87,6 +92,7 @@ tickers:
 #   name: "My Top Picks"
 #   exchange: "NSE"
 #   currency: "INR"
+#   rfr: 0.065
 #   suffix: ".NS"
 #
 # tickers:
@@ -103,6 +109,7 @@ tickers:
 #   name: "US Tech Giants"
 #   exchange: "NASDAQ"
 #   currency: "USD"
+#   rfr: 0.05
 #   suffix: ""
 #
 # tickers:
@@ -119,6 +126,7 @@ tickers:
 #   name: "Nifty 500"
 #   exchange: "NSE"
 #   currency: "INR"
+#   rfr: 0.065
 #   suffix: ".NS"
 #
 # csv_source:
@@ -133,6 +141,7 @@ tickers:
 #   name: "DAX 40"
 #   exchange: "XETRA"
 #   currency: "EUR"
+#   rfr: 0.04
 #   suffix: ".DE"
 #
 # tickers:
