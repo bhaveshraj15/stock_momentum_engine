@@ -35,8 +35,8 @@ from filters.base_filter import BaseFilter
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_FAST = 100
-_DEFAULT_SLOW = 200
+_DEFAULT_FAST = 50
+_DEFAULT_SLOW = 100
 
 
 class TrendFilter(BaseFilter):

@@ -122,6 +122,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Skip all gate filters, score the entire universe",
     )
     p.add_argument(
+        "--ema-fast",
+        type=int,
+        default=50,
+        help="Fast EMA span for TrendFilter gate (default: 50)",
+    )
+    p.add_argument(
+        "--ema-slow",
+        type=int,
+        default=100,
+        help="Slow EMA span for TrendFilter gate (default: 100)",
+    )
+    p.add_argument(
         "--volume-confirm",
         action="store_true",
         help="Add VolumeFilter confirm gate (vol_21d > vol_63d > vol_252d)",
@@ -253,7 +265,7 @@ def run(args: argparse.Namespace) -> None:
     if args.no_gates:
         gates = []
     else:
-        gates = default_gates(rfr=rfr)
+        gates = default_gates(rfr=rfr, ema_fast=args.ema_fast, ema_slow=args.ema_slow)
         if args.volume_confirm:
             gates.append(
                 VolumeFilter(params={"mode": "confirm"}, name="VolumeConfirm")
