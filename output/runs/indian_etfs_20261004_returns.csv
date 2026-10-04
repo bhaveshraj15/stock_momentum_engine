@@ -1,0 +1,5 @@
+Ticker,TrendFilter,MinReturnFilter,MomentumFilter,VolumeScore,final_score,rank
+MONQ50.NS,1.0,1.0,-4.0,9.924,1.0,1.0
+MASPTOP50.NS,1.0,1.0,-10.0,7.3475,0.6625,2.0
+MAFANG.NS,1.0,1.0,-10.0,2.4452,0.5875,3.0
+HDFCLIQUID.NS,1.0,1.0,-16.0,1.2461,0.25,4.0
